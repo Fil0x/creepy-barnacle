@@ -5,9 +5,9 @@ public class Main
     public static void main(String [] args)
     {
         Random random = new Random();
-        int name = random.nextInt(1000) +1;
+        int name = random.nextInt(1000) + 1;
         String ip_addr;
-        int port = 80;
+        int port = 8000;
 
         if(args.length == 0) {
             ip_addr = "127.0.0.1";
@@ -23,8 +23,13 @@ public class Main
             port = Integer.parseInt(args[1]);
         }
 
+        // START THE UI
         ClientForm cf = new ClientForm(name, ip_addr, port);
         cf.setVisible(true);
+
+        // START THE SERVER(LISTEN THREAD)
+        Server s = new Server();
+        s.startServer(port);
     }
 
 }

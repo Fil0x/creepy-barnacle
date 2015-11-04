@@ -1,4 +1,5 @@
 //import javax.swing.*;
+import java.awt.event.ActionListener;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -11,6 +12,7 @@ public class ClientForm extends JFrame{
     private String ip_addr;
     private int port;
     private int timeLeft = 30;
+    private String waiting = "Connect to another player or wait for a connection.";
 
     private JPanel main_panel;
     private JLabel status_label;
@@ -26,7 +28,7 @@ public class ClientForm extends JFrame{
 
     private void init_components() {
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        this.setTitle("RPS Client");
+        this.setTitle("RPS Client(" + this.ip_addr + ", " + this.port + ")");
 
         this.setLayout(new BorderLayout());
 
@@ -34,6 +36,11 @@ public class ClientForm extends JFrame{
         this.create_panel();
         this.create_status_bar();
 
+        this.pack();
+        this.setLocationRelativeTo(null); // center the window
+    }
+
+    private void start_timer() {
         timer = new Timer();
         TimerTask timeRefreshTask = new TimerTask() {
             @Override
@@ -42,7 +49,6 @@ public class ClientForm extends JFrame{
             }
         };
         timer.schedule(timeRefreshTask, 0, 1000);
-        this.pack();
     }
 
     private void create_status_bar() {
@@ -50,7 +56,7 @@ public class ClientForm extends JFrame{
         status_panel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         status_panel.setPreferredSize(new Dimension(this.getWidth(), 16));
         status_panel.setLayout(new BoxLayout(status_panel, BoxLayout.X_AXIS));
-        status_label = new JLabel("Status bar");
+        status_label = new JLabel(this.waiting);
         status_label.setHorizontalAlignment(SwingConstants.LEFT);
         status_panel.add(status_label);
 
@@ -66,6 +72,7 @@ public class ClientForm extends JFrame{
 
         // ROCK button
         JButton rock_button = new JButton("Rock");
+        rock_button.addActionListener(new ButtonClickListener());
         rock_button.setName("rock");
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
@@ -74,6 +81,7 @@ public class ClientForm extends JFrame{
 
         // SCISSORS button
         JButton scissors_button = new JButton("Scissors");
+        scissors_button.addActionListener(new ButtonClickListener());
         rock_button.setName("scissors");
         c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 0.5;
@@ -83,6 +91,7 @@ public class ClientForm extends JFrame{
 
         // PAPER button
         JButton paper_button = new JButton("Paper");
+        paper_button.addActionListener(new ButtonClickListener());
         rock_button.setName("paper");
         c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 0.5;
@@ -150,6 +159,21 @@ public class ClientForm extends JFrame{
         this.setJMenuBar(mb);
     }
 
+    private class ButtonClickListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            String command = e.getActionCommand();
+            if( command.equals( "Rock" ))  {
+                System.out.println("Rock");
+            }
+            else if( command.equals( "Scissors" ) )  {
+                System.out.println("Scissors");
+            }
+            else if( command.equals("Paper")) {
+                System.out.println("Paper");
+            }
+        }
+    }
+
     private class ConnectAction extends AbstractAction {
         public ConnectAction() {
             super();
@@ -157,7 +181,34 @@ public class ClientForm extends JFrame{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println("Connect");
+            JPanel panel = new JPanel();
+            panel.setLayout(new GridLayout(2, 2));
+
+            JLabel ip_label = new JLabel("Enter IP:");
+            JTextField ip_input = new JTextField();
+            JLabel port_label = new JLabel("Enter Port:");
+            JTextField port_input = new JTextField();
+
+            panel.add(ip_label);
+            panel.add(ip_input);
+            panel.add(port_label);
+            panel.add(port_input);
+
+            int okCxl = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(ClientForm.this),
+                                                        panel,
+                                                        "Connect to another player",
+                                                        JOptionPane.OK_CANCEL_OPTION);
+
+            if (okCxl == JOptionPane.OK_OPTION &&
+                Utilities.verify_ip(ip_input.getText()) &&
+                Utilities.verify_port(port_input.getText()))
+            {
+                String ip = ip_input.getText();
+                String port = port_input.getText();
+
+                Broadcaster b = new Broadcaster(new String[]{ip + " " + port}, "connect");
+                (new Thread(b)).start();
+            }
         }
     }
 
@@ -179,7 +230,7 @@ public class ClientForm extends JFrame{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println("Exit");
+            System.exit(0);
         }
     }
 }
