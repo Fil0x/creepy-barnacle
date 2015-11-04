@@ -3,6 +3,11 @@ import java.net.InetAddress;
 public class Player {
     private String move;
     private String name;
+
+    public void setTotalScore(int totalScore) {
+        this.totalScore = totalScore;
+    }
+
     private int totalScore;
     private int score;
     private InetAddress ip_address;
@@ -52,6 +57,6 @@ public class Player {
 
     @Override
     public String toString(){
-        return "name: " + name + " ip: " + ip_address + " port: " + port + " score: " + score;
+        return name + " " + ip_address.getHostAddress() + " " + port + " " + score + " " + totalScore;
     }
 }

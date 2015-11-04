@@ -29,7 +29,7 @@ public class Main
         cf.setVisible(true);
 
         // START THE SERVER(LISTEN THREAD)
-        Server s = new Server(Integer.toString(name), InetAddress.getByName(ip_addr), port);
+        Server s = new Server(Integer.toString(name), InetAddress.getByName(ip_addr), port, cf);
         s.startServer(port);
     }
 

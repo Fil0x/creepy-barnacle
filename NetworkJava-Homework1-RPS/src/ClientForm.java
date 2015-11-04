@@ -13,10 +13,12 @@ public class ClientForm extends JFrame{
     private int port;
     private int timeLeft = 30;
     private String waiting = "Connect to another player or wait for a connection.";
+    private final static String newline = "\n";
 
     private JPanel main_panel;
     private JLabel status_label;
     private Timer timer;
+    private JTextArea connected;
 
     public ClientForm(int name, String ip_addr, int port) {
         this.name = name;
@@ -38,6 +40,20 @@ public class ClientForm extends JFrame{
 
         this.pack();
         this.setLocationRelativeTo(null); // center the window
+    }
+
+    public synchronized void update_player_list(ArrayList<Player> players) {
+        // Clear the text area to rebuild it
+        this.connected.setText("");
+
+        for(Player p: players) {
+            String line = p.getName() + "(" + p.getScore() + ")(" + p.getTotalScore() + ")";
+            this.connected.append(line + this.newline);
+        }
+    }
+
+    public synchronized void clear_player_list() {
+        this.connected.setText("");
     }
 
     private void start_timer() {
@@ -124,7 +140,7 @@ public class ClientForm extends JFrame{
         main_panel.add(scroll, c);
 
         // PLAYERS CONNECTED
-        JTextArea connected = new JTextArea();
+        connected = new JTextArea();
         connected.setEnabled(false);
         JScrollPane conn_scroll = new JScrollPane(connected);
         conn_scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -205,10 +221,8 @@ public class ClientForm extends JFrame{
             {
                 String ip = ip_input.getText();
                 String port = port_input.getText();
-                //TODO
-                String msg = "connect," + name + "," + ClientForm.this.ip_addr + "," + ClientForm.this.port;
-                Broadcaster b = new Broadcaster(new String[]{ip + " " + port}, msg);
-                (new Thread(b)).start();
+                BroadcasterMediator.connect(ip, port,
+                        ClientForm.this.name, ClientForm.this.ip_addr, ClientForm.this.port);
             }
         }
     }
@@ -220,7 +234,7 @@ public class ClientForm extends JFrame{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println("Disconnect");
+            BroadcasterMediator.disconnect(Integer.toString(ClientForm.this.name), ClientForm.this);
         }
     }
 

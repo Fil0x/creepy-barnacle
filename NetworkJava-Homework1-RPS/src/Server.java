@@ -8,15 +8,24 @@ import java.util.concurrent.Executors;
 public class Server {
 
     volatile static ArrayList<Player> players = new ArrayList<>();
+    private final int port;
+    private final InetAddress ip_addr;
+    private final String name;
+    private final ClientForm client_ui;
 
     // This class receives data from the other players-clients
-    public Server(String name, InetAddress ip_address, int port){
+    public Server(String name, InetAddress ip_address, int port, ClientForm cf){
+        this.name = name;
+        this.ip_addr = ip_address;
+        this.port = port;
+        this.client_ui = cf;
+
+        // Add ourselves in the player list
         players.add(new Player(name, ip_address, port));
     }
 
     public void startServer(int port) {
         final ExecutorService clientProcessingPool = Executors.newFixedThreadPool(10);
-
 
         Runnable serverTask = () -> {
             try {
@@ -31,7 +40,7 @@ public class Server {
                     clientProcessingPool.submit(new ClientTask(recv_packet));
                 }
             } catch (SocketException e) {
-                System.err.println("Unable to process client request");
+                System.err.println("(Server) Unable to process client request");
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -48,6 +57,14 @@ public class Server {
         }
     }
 
+    public synchronized void update_player_list() {
+        this.client_ui.update_player_list(Server.players);
+    }
+
+    public synchronized void clear_player_list() {
+        this.client_ui.clear_player_list();
+    }
+
     private class ClientTask implements Runnable {
         private final DatagramPacket recv_packet;
 
@@ -62,21 +79,53 @@ public class Server {
             //System.out.println("(Worker) Received(" + from + "): " + data);
             String [] table = data.split(",");
             String command = table[0];
+            System.out.println("(Server) Received command: " + command);
             if (Objects.equals(command, "connect")){
                 try {
                     // connect(name, ip, port)
+                    // A new player wants to enter the game
                     String name = table[1];
                     InetAddress ip_address = InetAddress.getByName(table[2]);
                     int port = Integer.parseInt(table[3]);
+                    // Add him
                     players.add(new Player(name, ip_address, port));
-                    Server.printPlayers();
-                    //Broadcaster b = new Broadcaster( , "new_view");
-                    //(new Thread(b)).start();
+                    // Update our UI
+                    Server.this.update_player_list();
+                    // Inform all the clients that the group view has changed
+                    ArrayList<String> destinations = new ArrayList<>();
+                    StringBuffer msg = new StringBuffer("new_view");
+                    for(Player p: players) {
+                        // Message
+                        msg.append("," + p.toString());
+                        if (p.getIp_address() == Server.this.ip_addr && p.getPort() == Server.this.port)
+                            continue;
+                        // Destinations
+                        String player_data = p.getIp_address().getHostAddress() + " " + p.getPort();
+                        destinations.add(player_data);
+                    }
+                    // Broadcast it
+                    BroadcasterMediator.new_view(destinations, msg.toString());
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }
             }
-            // Do whatever required to process the client's request
+            else if (Objects.equals(command, "new_view")) {
+                players.clear();
+                for (int i = 1; i < table.length; i++) {
+                    try {
+                        String[] p_data = table[i].split(" ");
+                        Player p = new Player(p_data[0],
+                                InetAddress.getByName(p_data[1]),
+                                Integer.parseInt(p_data[2]));
+                        p.setScore(Integer.parseInt(p_data[3]));
+                        p.setTotalScore(Integer.parseInt(p_data[4]));
+                        players.add(p);
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Server.this.update_player_list();
+            }
         }
     }
 
