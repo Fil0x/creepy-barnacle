@@ -1,9 +1,10 @@
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Random;
 
 public class Main
 {
-    public static void main(String [] args)
-    {
+    public static void main(String [] args) throws UnknownHostException {
         Random random = new Random();
         int name = random.nextInt(1000) + 1;
         String ip_addr;
@@ -28,7 +29,7 @@ public class Main
         cf.setVisible(true);
 
         // START THE SERVER(LISTEN THREAD)
-        Server s = new Server();
+        Server s = new Server(Integer.toString(name), InetAddress.getByName(ip_addr), port);
         s.startServer(port);
     }
 

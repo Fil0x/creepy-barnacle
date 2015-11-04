@@ -28,7 +28,7 @@ public class ClientForm extends JFrame{
 
     private void init_components() {
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        this.setTitle("RPS Client(" + this.ip_addr + ", " + this.port + ")");
+        this.setTitle("RPS Client(" + this.name + ", "  + this.ip_addr + ", " + this.port + ")");
 
         this.setLayout(new BorderLayout());
 
@@ -185,7 +185,7 @@ public class ClientForm extends JFrame{
             panel.setLayout(new GridLayout(2, 2));
 
             JLabel ip_label = new JLabel("Enter IP:");
-            JTextField ip_input = new JTextField();
+            JTextField ip_input = new JTextField("127.0.0.1");
             JLabel port_label = new JLabel("Enter Port:");
             JTextField port_input = new JTextField();
 
@@ -205,8 +205,9 @@ public class ClientForm extends JFrame{
             {
                 String ip = ip_input.getText();
                 String port = port_input.getText();
-
-                Broadcaster b = new Broadcaster(new String[]{ip + " " + port}, "connect");
+                //TODO
+                String msg = "connect," + name + "," + ClientForm.this.ip_addr + "," + ClientForm.this.port;
+                Broadcaster b = new Broadcaster(new String[]{ip + " " + port}, msg);
                 (new Thread(b)).start();
             }
         }

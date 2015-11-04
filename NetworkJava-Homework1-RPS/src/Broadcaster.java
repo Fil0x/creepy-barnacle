@@ -9,7 +9,10 @@ public class Broadcaster implements Runnable {
     private String msg;
 
     public Broadcaster(String[] receivers, String msg) {
-        this.receivers = receivers;
+        this.receivers = new String[receivers.length];
+        for (int i = 0; i < receivers.length; i++) {
+            this.receivers[i] = receivers[i];
+        }
         this.msg = msg;
     }
 
@@ -17,8 +20,8 @@ public class Broadcaster implements Runnable {
     public void run() {
         try {
             DatagramSocket socket = new DatagramSocket();
-            for (int i = 0; i < this.receivers.length; i++) {
-                String[] split = this.receivers[i].split(" ");
+            for (String receiver : this.receivers) {
+                String[] split = receiver.split(" ");
                 String ip = split[0];
                 int port = Integer.parseInt(split[1]);
                 InetAddress addr = InetAddress.getByName(ip);
@@ -29,10 +32,6 @@ public class Broadcaster implements Runnable {
                 socket.send(packet);
             }
 
-        } catch (SocketException e) {
-            e.printStackTrace();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
