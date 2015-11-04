@@ -1,9 +1,12 @@
+import java.util.Random;
 
 public class Main
 {
     public static void main(String [] args)
     {
-        String ip_addr = null;
+        Random random = new Random();
+        int name = random.nextInt(1000) +1;
+        String ip_addr;
         int port = 80;
 
         if(args.length == 0) {
@@ -20,7 +23,7 @@ public class Main
             port = Integer.parseInt(args[1]);
         }
 
-        ClientForm cf = new ClientForm(ip_addr, port);
+        ClientForm cf = new ClientForm(name, ip_addr, port);
         cf.setVisible(true);
     }
 

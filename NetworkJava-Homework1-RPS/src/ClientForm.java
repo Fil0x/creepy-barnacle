@@ -1,20 +1,23 @@
 //import javax.swing.*;
-
+import java.util.*;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
+import java.util.Timer;
 
 public class ClientForm extends JFrame{
+    private int name;
+    private String ip_addr;
+    private int port;
+    private int timeLeft = 30;
 
-    String ip_addr;
-    int port;
+    private JPanel main_panel;
+    private JLabel status_label;
+    private Timer timer;
 
-    JPanel main_panel;
-    JLabel status_label;
-
-    public ClientForm(String ip_addr, int port) {
+    public ClientForm(int name, String ip_addr, int port) {
+        this.name = name;
         this.ip_addr = ip_addr;
         this.port = port;
 
@@ -31,6 +34,14 @@ public class ClientForm extends JFrame{
         this.create_panel();
         this.create_status_bar();
 
+        timer = new Timer();
+        TimerTask timeRefreshTask = new TimerTask() {
+            @Override
+            public void run() {
+                status_label.setText("Time left before end of round: " + Integer.toString(--timeLeft));
+            }
+        };
+        timer.schedule(timeRefreshTask, 0, 1000);
         this.pack();
     }
 
@@ -92,6 +103,7 @@ public class ClientForm extends JFrame{
 
         // LOG
         JTextArea log = new JTextArea();
+        log.setEnabled(false);
         JScrollPane scroll = new JScrollPane(log);
         scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         c.weighty = 1;
@@ -104,6 +116,7 @@ public class ClientForm extends JFrame{
 
         // PLAYERS CONNECTED
         JTextArea connected = new JTextArea();
+        connected.setEnabled(false);
         JScrollPane conn_scroll = new JScrollPane(connected);
         conn_scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         c.weighty = 1;
