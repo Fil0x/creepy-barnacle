@@ -18,6 +18,7 @@ public class BroadcasterMediator {
         if(Server.players.size()!=1){
             System.out.println("error: already connected to a game, first disconnect"); //TODO del
             client_ui.append_to_log("error: already connected to a game, first disconnect");
+            client_ui.set_connected();
             return;
         }
         String msg = "connect," + name + "," + ip_addr + "," + port;
@@ -25,6 +26,7 @@ public class BroadcasterMediator {
         dest.add(dest_ip_addr + " " + dest_port);
         Broadcaster b = new Broadcaster(dest, msg, this.client_ui);
         (new Thread(b)).start();
+        client_ui.set_connected();
     }
 
     public void disconnect(String name) {
@@ -47,6 +49,7 @@ public class BroadcasterMediator {
                 (new Thread(b)).start();
                 Server.players.clear();
                 Server.players.add(new Player(p.getName(), p.getIp_address(), p.getPort()));
+                client_ui.set_disconnected();
                 return;
             }
         }

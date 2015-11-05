@@ -63,9 +63,7 @@ public class Server {
         this.client_ui.update_player_list(Server.players);
     }
 
-    public synchronized void clear_player_list() {
-        this.client_ui.clear_player_list();
-    }
+    public synchronized void clear_player_list() { this.client_ui.clear_player_list(); }
 
     public synchronized void append_log(String msg) { this.client_ui.append_to_log(msg); }
 
@@ -84,7 +82,6 @@ public class Server {
             String [] table = data.split(",");
             String command = table[0];
             System.out.println("(Server) Received command: " + command); //TODO Del
-            System.out.println(" printing before ...");
             Server.printPlayers();
             append_log("(Server) Received command: " + command);
             if (Objects.equals(command, "connect")){
@@ -135,8 +132,10 @@ public class Server {
 
                 if(players.size() == 1){
                     client_ui.clear_player_list();
+                    client_ui.set_disconnected();
                 } else{
                     Server.this.update_player_list();
+                    client_ui.set_connected();
                     assert players.size() >=1;
                 }
             }

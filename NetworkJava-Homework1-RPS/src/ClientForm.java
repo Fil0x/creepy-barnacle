@@ -19,6 +19,7 @@ public class ClientForm extends JFrame{
     private Timer timer;
     private JTextArea connected;
     private JTextArea log;
+    private JMenuItem connect, disconnect;
 
 
     public ClientForm(int name, String ip_addr, int port) {
@@ -41,6 +42,7 @@ public class ClientForm extends JFrame{
 
         this.pack();
         this.setLocationRelativeTo(null); // center the window
+        this.set_disconnected();
     }
 
     public synchronized void update_player_list(ArrayList<Player> players) {
@@ -57,7 +59,7 @@ public class ClientForm extends JFrame{
         this.connected.setText("");
     }
 
-    public synchronized void append_to_log(String msg) { this.log.append(msg+"\n"); }
+    public synchronized void append_to_log(String msg) { this.log.append(msg + "\n"); }
 
     private void start_timer() {
         timer = new Timer();
@@ -162,11 +164,11 @@ public class ClientForm extends JFrame{
         JMenuBar mb = new JMenuBar();
         JMenu menu = new JMenu("Actions");
 
-        JMenuItem connect = new JMenuItem("Connect");
+        connect = new JMenuItem("Connect");
         connect.addActionListener(new ConnectAction());
         menu.add(connect);
 
-        JMenuItem disconnect = new JMenuItem("Disconnect");
+        disconnect = new JMenuItem("Disconnect");
         disconnect.addActionListener(new DisconnectAction());
         menu.add(disconnect);
 
@@ -176,6 +178,16 @@ public class ClientForm extends JFrame{
 
         mb.add(menu);
         this.setJMenuBar(mb);
+    }
+
+    public void set_connected() {
+        this.connect.setEnabled(false);
+        this.disconnect.setEnabled(true);
+    }
+
+    public void set_disconnected() {
+        this.connect.setEnabled(true);
+        this.disconnect.setEnabled(false);
     }
 
     private class ButtonClickListener implements ActionListener {
