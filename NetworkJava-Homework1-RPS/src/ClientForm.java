@@ -1,4 +1,3 @@
-//import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.util.*;
 import javax.swing.*;
@@ -19,6 +18,8 @@ public class ClientForm extends JFrame{
     private JLabel status_label;
     private Timer timer;
     private JTextArea connected;
+    private JTextArea log;
+
 
     public ClientForm(int name, String ip_addr, int port) {
         this.name = name;
@@ -55,6 +56,8 @@ public class ClientForm extends JFrame{
     public synchronized void clear_player_list() {
         this.connected.setText("");
     }
+
+    public synchronized void append_to_log(String msg) { this.log.append(msg+"\n"); }
 
     private void start_timer() {
         timer = new Timer();
@@ -127,7 +130,7 @@ public class ClientForm extends JFrame{
         main_panel.add(player_label, c);
 
         // LOG
-        JTextArea log = new JTextArea();
+        log = new JTextArea();
         log.setEnabled(false);
         JScrollPane scroll = new JScrollPane(log);
         scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -219,9 +222,10 @@ public class ClientForm extends JFrame{
                 Utilities.verify_ip(ip_input.getText()) &&
                 Utilities.verify_port(port_input.getText()))
             {
-                String ip = ip_input.getText();
-                String port = port_input.getText();
-                BroadcasterMediator.connect(ip, port,
+                String ip_to = ip_input.getText();
+                String port_to = port_input.getText();
+                BroadcasterMediator bm = new BroadcasterMediator(ClientForm.this);
+                bm.connect(ip_to, port_to,
                         ClientForm.this.name, ClientForm.this.ip_addr, ClientForm.this.port);
             }
         }
@@ -234,7 +238,8 @@ public class ClientForm extends JFrame{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            BroadcasterMediator.disconnect(Integer.toString(ClientForm.this.name), ClientForm.this);
+            BroadcasterMediator bm = new BroadcasterMediator(ClientForm.this);
+            bm.disconnect(Integer.toString(ClientForm.this.name));
         }
     }
 
@@ -247,5 +252,9 @@ public class ClientForm extends JFrame{
         public void actionPerformed(ActionEvent e) {
             System.exit(0);
         }
+    }
+
+    public String getName(){
+        return Integer.toString(name);
     }
 }

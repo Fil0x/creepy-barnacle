@@ -33,14 +33,16 @@ public class Server {
                 byte[] recv_data = new byte[1024];
 //                    byte[] reply_data = new byte[1024];
 
-                System.out.println("(Server) Waiting for clients to connect...");
+                System.out.println("(Server) Waiting for clients to connect...");   //TODO del
+                append_log("(Server) Waiting for clients to connect...");
                 while (true) {
                     DatagramPacket recv_packet = new DatagramPacket(recv_data, recv_data.length);
                     serverSocket.receive(recv_packet);
                     clientProcessingPool.submit(new ClientTask(recv_packet));
                 }
             } catch (SocketException e) {
-                System.err.println("(Server) Unable to process client request");
+                System.err.println("(Server) Unable to process client request");    //TODO del
+                append_log("(Server) Unable to process client request");
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -65,6 +67,8 @@ public class Server {
         this.client_ui.clear_player_list();
     }
 
+    public synchronized void append_log(String msg) { this.client_ui.append_to_log(msg); }
+
     private class ClientTask implements Runnable {
         private final DatagramPacket recv_packet;
 
@@ -79,10 +83,13 @@ public class Server {
             //System.out.println("(Worker) Received(" + from + "): " + data);
             String [] table = data.split(",");
             String command = table[0];
-            System.out.println("(Server) Received command: " + command);
+            System.out.println("(Server) Received command: " + command); //TODO Del
+            System.out.println(" printing before ...");
+            Server.printPlayers();
+            append_log("(Server) Received command: " + command);
             if (Objects.equals(command, "connect")){
                 try {
-                    // connect(name, ip, port)
+                    // connect(name, new_ip, new_port)
                     // A new player wants to enter the game
                     String name = table[1];
                     InetAddress ip_address = InetAddress.getByName(table[2]);
@@ -93,18 +100,19 @@ public class Server {
                     Server.this.update_player_list();
                     // Inform all the clients that the group view has changed
                     ArrayList<String> destinations = new ArrayList<>();
-                    StringBuffer msg = new StringBuffer("new_view");
+                    String msg = "new_view";
                     for(Player p: players) {
                         // Message
-                        msg.append("," + p.toString());
-                        if (p.getIp_address() == Server.this.ip_addr && p.getPort() == Server.this.port)
-                            continue;
+                        msg = msg.concat("," + p.toString());
+                        //if (p.getIp_address().equals(Server.this.ip_addr) && p.getPort() == Server.this.port)
+                        //    continue;
                         // Destinations
                         String player_data = p.getIp_address().getHostAddress() + " " + p.getPort();
                         destinations.add(player_data);
                     }
                     // Broadcast it
-                    BroadcasterMediator.new_view(destinations, msg.toString());
+                    BroadcasterMediator bm = new BroadcasterMediator(client_ui);
+                    bm.new_view(destinations, msg);
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }
@@ -124,9 +132,14 @@ public class Server {
                         e.printStackTrace();
                     }
                 }
-                Server.this.update_player_list();
+
+                if(players.size() == 1){
+                    client_ui.clear_player_list();
+                } else{
+                    Server.this.update_player_list();
+                    assert players.size() >=1;
+                }
             }
         }
     }
-
 }

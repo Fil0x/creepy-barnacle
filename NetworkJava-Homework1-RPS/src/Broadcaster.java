@@ -1,18 +1,23 @@
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 
 public class Broadcaster implements Runnable {
     // This class sends an update to the other players-clients
 
-    private ArrayList<String> receivers; // (IP Port) list of the nodes needing this update.
+    private final ClientForm client_ui;
+    private ArrayList<String> receivers = new ArrayList<>(); // (IP Port) list of the nodes needing this update.
     private String msg;
 
-    public Broadcaster(ArrayList<String> receivers, String msg) {
-        this.receivers = (ArrayList<String>) receivers.clone();
+    public Broadcaster(ArrayList<String> receivers, String msg, ClientForm client_ui) {
+        this.client_ui = client_ui;
+        this.receivers.addAll(receivers.stream().collect(Collectors.toList()));
         this.msg = msg;
     }
+
+    public synchronized void append_log(String msg) { this.client_ui.append_to_log(msg); }
 
     @Override
     public void run() {
@@ -26,7 +31,8 @@ public class Broadcaster implements Runnable {
 
                 DatagramPacket packet = new DatagramPacket(msg.getBytes(),
                         msg.getBytes().length, addr, port);
-                System.out.println("(Broadcaster) Sending to: " + ip + ", " + port + ":" + msg);
+                System.out.println("(Broadcaster) Sending to: " + ip + ", " + port + ":" + msg); //TODO del
+                append_log("(Broadcaster) Sending to: " + ip + ", " + port + ":" + msg);
                 socket.send(packet);
             }
 
