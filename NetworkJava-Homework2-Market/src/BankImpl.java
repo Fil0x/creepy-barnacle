@@ -29,7 +29,7 @@ public class BankImpl extends UnicastRemoteObject implements Bank {
         }
         account = new AccountImpl(name);
         accounts.put(name, account);
-        System.out.println("se.kth.id2212.ex2.Bank: " + bankName + " Account: " + account
+        System.out.println("Bank: " + bankName + " Account: " + account
                 + " has been created for " + name);
         return account;
     }
@@ -45,7 +45,7 @@ public class BankImpl extends UnicastRemoteObject implements Bank {
             return false;
         }
         accounts.remove(name);
-        System.out.println("se.kth.id2212.ex2.Bank: " + bankName + " Account for " + name
+        System.out.println("Bank: " + bankName + " Account for " + name
                 + " has been deleted");
         return true;
     }
