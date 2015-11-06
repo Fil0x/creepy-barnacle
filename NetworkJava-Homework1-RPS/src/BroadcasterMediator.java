@@ -1,11 +1,14 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class BroadcasterMediator {
 
     private final ClientForm client_ui;
+    private final Server server;
 
-    public BroadcasterMediator(ClientForm client_ui){
+    public BroadcasterMediator(ClientForm client_ui, Server server){
         this.client_ui = client_ui;
+        this.server = server;
     }
 
     public void connect(String dest_ip_addr, String dest_port, int name, String ip_addr, int port) {
@@ -58,6 +61,23 @@ public class BroadcasterMediator {
 
     public void new_view(ArrayList<String> destinations, String message) {
         Broadcaster b = new Broadcaster(destinations, message, this.client_ui);
+        (new Thread(b)).start();
+    }
+
+    public void send_move(String name, String choice){
+        ArrayList<String> destinations = new ArrayList<>();
+        for (Player p : Server.players) {
+            if(!(p.getName().equals(name))) {
+                // Destinations
+                String player_data = p.getIp_address().getHostAddress() + " " + p.getPort();
+                destinations.add(player_data);
+            }
+        }
+        String msg = "choice," + name + "," + choice;
+        server.addMove(name, choice);
+        server.finalizeRound(name, choice);
+
+        Broadcaster b = new Broadcaster(destinations, msg, this.client_ui);
         (new Thread(b)).start();
     }
 }

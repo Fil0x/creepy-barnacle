@@ -18,7 +18,11 @@ public class Player {
     }
 
     public void setScore(int score) {
+        this.score = score;
         this.totalScore += score;
+    }
+
+    public void setAbsoluteScore(int score){
         this.score = score;
     }
 

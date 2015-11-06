@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -8,6 +9,8 @@ import java.util.concurrent.Executors;
 public class Server {
 
     volatile static ArrayList<Player> players = new ArrayList<>();
+    volatile static Round round;
+
     private final int port;
     private final InetAddress ip_addr;
     private final String name;
@@ -56,6 +59,25 @@ public class Server {
     public static synchronized void printPlayers(){
         for (int i = 0; i < players.size(); i++) {
             System.out.println(players.get(i));
+        }
+    }
+
+    public synchronized void addMove(String name, String choice){
+        if(round == null){
+            round = new Round();
+            round.addMove(name, choice);
+        } else {
+            round.addMove(name, choice);
+        }
+    }
+
+    public synchronized void finalizeRound(String name, String choice){
+        if(round.isRoundFinished()) {
+            HashMap<String, Integer> results = round.getResults();
+            for(Player p : players){
+                p.setScore(results.get(p.getName()));
+            }
+            update_player_list();
         }
     }
 
@@ -108,7 +130,7 @@ public class Server {
                         destinations.add(player_data);
                     }
                     // Broadcast it
-                    BroadcasterMediator bm = new BroadcasterMediator(client_ui);
+                    BroadcasterMediator bm = new BroadcasterMediator(client_ui, Server.this);
                     bm.new_view(destinations, msg);
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
@@ -122,7 +144,7 @@ public class Server {
                         Player p = new Player(p_data[0],
                                 InetAddress.getByName(p_data[1]),
                                 Integer.parseInt(p_data[2]));
-                        p.setScore(Integer.parseInt(p_data[3]));
+                        p.setAbsoluteScore(Integer.parseInt(p_data[3]));
                         p.setTotalScore(Integer.parseInt(p_data[4]));
                         players.add(p);
                     } catch (UnknownHostException e) {
@@ -138,6 +160,13 @@ public class Server {
                     client_ui.set_connected();
                     assert players.size() >=1;
                 }
+            }
+            else if (Objects.equals(command, "choice")) {
+                //TODO
+                String name = table[1];
+                String choice = table[2];
+                addMove(name, choice);
+                finalizeRound(name, choice);
             }
         }
     }

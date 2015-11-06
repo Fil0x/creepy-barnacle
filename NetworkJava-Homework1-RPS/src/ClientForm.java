@@ -14,12 +14,15 @@ public class ClientForm extends JFrame{
     private String waiting = "Connect to another player or wait for a connection.";
     private final static String newline = "\n";
 
+    private Server server;
+
     private JPanel main_panel;
     private JLabel status_label;
     private Timer timer;
     private JTextArea connected;
     private JTextArea log;
     private JMenuItem connect, disconnect;
+
 
 
     public ClientForm(int name, String ip_addr, int port) {
@@ -192,17 +195,16 @@ public class ClientForm extends JFrame{
 
     private class ButtonClickListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            String command = e.getActionCommand();
-            if( command.equals( "Rock" ))  {
-                System.out.println("Rock");
-            }
-            else if( command.equals( "Scissors" ) )  {
-                System.out.println("Scissors");
-            }
-            else if( command.equals("Paper")) {
-                System.out.println("Paper");
-            }
+            String choice = e.getActionCommand();
+
+            BroadcasterMediator bm = new BroadcasterMediator(ClientForm.this, server);
+
+            bm.send_move(ClientForm.this.getName(), choice);
         }
+    }
+
+    public void setServer(Server server){
+        this.server = server;
     }
 
     private class ConnectAction extends AbstractAction {
@@ -236,7 +238,7 @@ public class ClientForm extends JFrame{
             {
                 String ip_to = ip_input.getText();
                 String port_to = port_input.getText();
-                BroadcasterMediator bm = new BroadcasterMediator(ClientForm.this);
+                BroadcasterMediator bm = new BroadcasterMediator(ClientForm.this, server);
                 bm.connect(ip_to, port_to,
                         ClientForm.this.name, ClientForm.this.ip_addr, ClientForm.this.port);
             }
@@ -250,7 +252,7 @@ public class ClientForm extends JFrame{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            BroadcasterMediator bm = new BroadcasterMediator(ClientForm.this);
+            BroadcasterMediator bm = new BroadcasterMediator(ClientForm.this, server);
             bm.disconnect(Integer.toString(ClientForm.this.name));
         }
     }

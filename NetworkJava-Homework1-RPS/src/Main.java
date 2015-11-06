@@ -31,6 +31,7 @@ public class Main
         // START THE SERVER(LISTEN THREAD)
         Server s = new Server(Integer.toString(name), InetAddress.getByName(ip_addr), port, cf);
         s.startServer(port);
+        cf.setServer(s);
     }
 
 }
