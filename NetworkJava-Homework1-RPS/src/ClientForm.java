@@ -2,6 +2,7 @@ import java.awt.event.ActionListener;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
+import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.Timer;
@@ -17,12 +18,12 @@ public class ClientForm extends JFrame{
     private Server server;
 
     private JPanel main_panel;
-    private JLabel status_label;
+    private JLabel status_label, player_label;
     private Timer timer;
     private JTextArea connected;
     private JTextArea log;
     private JMenuItem connect, disconnect;
-
+    private JButton rock_button, scissors_button, paper_button;
 
 
     public ClientForm(int name, String ip_addr, int port) {
@@ -53,9 +54,19 @@ public class ClientForm extends JFrame{
         this.connected.setText("");
 
         for(Player p: players) {
-            String line = p.getName() + "(" + p.getScore() + ")(" + p.getTotalScore() + ")";
+            String line = p.getName() + " - " + p.getScore() + " - " + p.getTotalScore();
             this.connected.append(line + this.newline);
         }
+    }
+
+    public synchronized void update_player_label(int num_players) {
+        player_label.setText("Players(" + num_players + "):");
+    }
+
+    public synchronized void gamepanel_active(boolean state) {
+        this.rock_button.setEnabled(state);
+        this.scissors_button.setEnabled(state);
+        this.paper_button.setEnabled(state);
     }
 
     public synchronized void clear_player_list() {
@@ -90,23 +101,21 @@ public class ClientForm extends JFrame{
     private void create_panel() {
         main_panel = new JPanel();
         main_panel.setLayout(new GridBagLayout());
-        main_panel.setPreferredSize(new Dimension(300, 300));
+        main_panel.setPreferredSize(new Dimension(400, 300));
 
         GridBagConstraints c = new GridBagConstraints();
 
         // ROCK button
-        JButton rock_button = new JButton("Rock");
+        rock_button = new JButton("Rock");
         rock_button.addActionListener(new ButtonClickListener());
-        rock_button.setName("rock");
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy = 0;
         main_panel.add(rock_button, c);
 
         // SCISSORS button
-        JButton scissors_button = new JButton("Scissors");
+        scissors_button = new JButton("Scissors");
         scissors_button.addActionListener(new ButtonClickListener());
-        rock_button.setName("scissors");
         c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 0.5;
         c.gridx = 1;
@@ -114,9 +123,8 @@ public class ClientForm extends JFrame{
         main_panel.add(scissors_button, c);
 
         // PAPER button
-        JButton paper_button = new JButton("Paper");
+        paper_button = new JButton("Paper");
         paper_button.addActionListener(new ButtonClickListener());
-        rock_button.setName("paper");
         c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 0.5;
         c.gridx = 2;
@@ -129,14 +137,16 @@ public class ClientForm extends JFrame{
         c.gridy = 1;
         main_panel.add(log_label, c);
 
-        JLabel player_label = new JLabel("Players(X):");
+        player_label = new JLabel("Players:");
         c.gridx = 2;
         c.gridy = 1;
         main_panel.add(player_label, c);
 
         // LOG
         log = new JTextArea();
-        log.setEnabled(false);
+        log.setEditable(false);
+        DefaultCaret caret = (DefaultCaret)log.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         JScrollPane scroll = new JScrollPane(log);
         scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         c.weighty = 1;
@@ -149,7 +159,7 @@ public class ClientForm extends JFrame{
 
         // PLAYERS CONNECTED
         connected = new JTextArea();
-        connected.setEnabled(false);
+        connected.setEditable(false);
         JScrollPane conn_scroll = new JScrollPane(connected);
         conn_scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         c.weighty = 1;
@@ -186,11 +196,13 @@ public class ClientForm extends JFrame{
     public void set_connected() {
         this.connect.setEnabled(false);
         this.disconnect.setEnabled(true);
+        this.gamepanel_active(true);
     }
 
     public void set_disconnected() {
         this.connect.setEnabled(true);
         this.disconnect.setEnabled(false);
+        this.gamepanel_active(false);
     }
 
     private class ButtonClickListener implements ActionListener {
@@ -229,7 +241,7 @@ public class ClientForm extends JFrame{
 
             int okCxl = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(ClientForm.this),
                                                         panel,
-                                                        "Connect to another player",
+                                                        "(" + ClientForm.this.name + ") Connect to another player",
                                                         JOptionPane.OK_CANCEL_OPTION);
 
             if (okCxl == JOptionPane.OK_OPTION &&

@@ -15,12 +15,12 @@ public class BroadcasterMediator {
 
         if(dest_ip_addr.equals(ip_addr) && dest_port.equals(Integer.toString(port)) ) {
             System.out.println("error: trying to connect to ourselves"); //TODO del
-            client_ui.append_to_log("error: trying to connect to ourselves");
+            client_ui.append_to_log("(WARN) Can't connect to yourself.");
             return;
         }
         if(Server.players.size()!=1){
             System.out.println("error: already connected to a game, first disconnect"); //TODO del
-            client_ui.append_to_log("error: already connected to a game, first disconnect");
+            client_ui.append_to_log("(WARN) Already connected to a game.");
             client_ui.set_connected();
             return;
         }
@@ -74,8 +74,9 @@ public class BroadcasterMediator {
             }
         }
         String msg = "choice," + name + "," + choice;
+        client_ui.gamepanel_active(false);
         server.addMove(name, choice);
-        server.finalizeRound(name, choice);
+        server.finalizeRound();
 
         Broadcaster b = new Broadcaster(destinations, msg, this.client_ui);
         (new Thread(b)).start();

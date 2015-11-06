@@ -37,7 +37,7 @@ public class Server {
 //                    byte[] reply_data = new byte[1024];
 
                 System.out.println("(Server) Waiting for clients to connect...");   //TODO del
-                append_log("(Server) Waiting for clients to connect...");
+                append_log("(INFO) Waiting for players to connect...");
                 while (true) {
                     DatagramPacket recv_packet = new DatagramPacket(recv_data, recv_data.length);
                     serverSocket.receive(recv_packet);
@@ -45,7 +45,7 @@ public class Server {
                 }
             } catch (SocketException e) {
                 System.err.println("(Server) Unable to process client request");    //TODO del
-                append_log("(Server) Unable to process client request");
+                append_log("(ERROR) Unable to process client request");
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -65,18 +65,27 @@ public class Server {
     public synchronized void addMove(String name, String choice){
         if(round == null){
             round = new Round();
+            append_log("(INFO) NEW ROUND STARTED.");
+            append_log("(INFO) " + name + " chose " + choice.toUpperCase() + ".");
             round.addMove(name, choice);
         } else {
+            append_log("(INFO) " + name + " chose " + choice.toUpperCase() + ".");
             round.addMove(name, choice);
         }
     }
 
-    public synchronized void finalizeRound(String name, String choice){
+    public synchronized void finalizeRound(){
         if(round.isRoundFinished()) {
             HashMap<String, Integer> results = round.getResults();
+            System.out.println("(Server) Round completed.");
+            append_log("(INFO) RESULTS:");
             for(Player p : players){
                 p.setScore(results.get(p.getName()));
+                append_log("(INFO) " + p.getName() + " : " + p.getScore() + " points. TOTAL: " + p.getTotalScore() );
             }
+            round = null;
+            client_ui.gamepanel_active(true);
+            append_log("(INFO) Ready to start a new round.");
             update_player_list();
         }
     }
@@ -105,7 +114,6 @@ public class Server {
             String command = table[0];
             System.out.println("(Server) Received command: " + command); //TODO Del
             Server.printPlayers();
-            append_log("(Server) Received command: " + command);
             if (Objects.equals(command, "connect")){
                 try {
                     // connect(name, new_ip, new_port)
@@ -117,6 +125,8 @@ public class Server {
                     players.add(new Player(name, ip_address, port));
                     // Update our UI
                     Server.this.update_player_list();
+                    Server.this.client_ui.update_player_label(Server.players.size());
+                    append_log("(INFO) Player connected: " + name + "(" + from + ")");
                     // Inform all the clients that the group view has changed
                     ArrayList<String> destinations = new ArrayList<>();
                     String msg = "new_view";
@@ -157,6 +167,7 @@ public class Server {
                     client_ui.set_disconnected();
                 } else{
                     Server.this.update_player_list();
+                    Server.this.client_ui.update_player_label(Server.players.size());
                     client_ui.set_connected();
                     assert players.size() >=1;
                 }
@@ -166,7 +177,7 @@ public class Server {
                 String name = table[1];
                 String choice = table[2];
                 addMove(name, choice);
-                finalizeRound(name, choice);
+                finalizeRound();
             }
         }
     }

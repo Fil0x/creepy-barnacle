@@ -22,6 +22,7 @@ public class Broadcaster implements Runnable {
     @Override
     public void run() {
         try {
+            // TODO: If ip and port doesnt exist it still connects
             DatagramSocket socket = new DatagramSocket();
             for (String receiver : this.receivers) {
                 String[] split = receiver.split(" ");
@@ -32,10 +33,14 @@ public class Broadcaster implements Runnable {
                 DatagramPacket packet = new DatagramPacket(msg.getBytes(),
                         msg.getBytes().length, addr, port);
                 System.out.println("(Broadcaster) Sending to: " + ip + ", " + port + ":" + msg); //TODO del
-                append_log("(Broadcaster) Sending to: " + ip + ", " + port + ":" + msg);
+                // append_log("(Broadcaster) Sending to: " + ip + ", " + port + ":" + msg);
                 socket.send(packet);
             }
 
+        } catch (UnknownHostException e) {
+            System.out.println("Unknown host");
+        } catch (SocketException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
