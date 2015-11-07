@@ -8,10 +8,10 @@ import java.awt.event.ActionEvent;
 import java.util.Timer;
 
 public class ClientForm extends JFrame{
+    final int TIME_TO_WAIT = 6;
     private int name;
     private String ip_addr;
     private int port;
-    private int timeLeft = 30;
     private String waiting = "Connect to another player or wait for a connection.";
     private final static String newline = "\n";
 
@@ -20,6 +20,7 @@ public class ClientForm extends JFrame{
     private JPanel main_panel;
     private JLabel status_label, player_label;
     private Timer timer;
+    private int time;
     private JTextArea connected;
     private JTextArea log;
     private JMenuItem connect, disconnect;
@@ -30,7 +31,7 @@ public class ClientForm extends JFrame{
         this.name = name;
         this.ip_addr = ip_addr;
         this.port = port;
-
+        time = TIME_TO_WAIT;
         this.init_components();
     }
 
@@ -49,21 +50,29 @@ public class ClientForm extends JFrame{
         this.set_disconnected();
     }
 
+    private boolean hasPlayed(){
+        return !rock_button.isEnabled() && !scissors_button.isEnabled() && !paper_button.isEnabled();
+    }
+
+    public void resetTimer(){
+        time = TIME_TO_WAIT;
+    }
+
     public synchronized void update_player_list(ArrayList<Player> players) {
         // Clear the text area to rebuild it
         this.connected.setText("");
 
         for(Player p: players) {
-            String line = p.getName() + " - " + p.getScore() + " - " + p.getTotalScore();
-            this.connected.append(line + this.newline);
+            String line = p.getName() + " : " + p.getScore() + " - " + p.getTotalScore();
+            this.connected.append(line + newline);
         }
     }
 
     public synchronized void update_player_label(int num_players) {
-        player_label.setText("Players(" + num_players + "):");
+        player_label.setText(num_players + " players are playing");
     }
 
-    public synchronized void gamepanel_active(boolean state) {
+    public synchronized void game_panel_active(boolean state) {
         this.rock_button.setEnabled(state);
         this.scissors_button.setEnabled(state);
         this.paper_button.setEnabled(state);
@@ -75,15 +84,28 @@ public class ClientForm extends JFrame{
 
     public synchronized void append_to_log(String msg) { this.log.append(msg + "\n"); }
 
-    private void start_timer() {
+    public void start_timer() {
         timer = new Timer();
         TimerTask timeRefreshTask = new TimerTask() {
             @Override
             public void run() {
-                status_label.setText("Time left before end of round: " + Integer.toString(--timeLeft));
+                status_label.setText((--time <= 0)?"End of round..." : "Time left before end of round: "
+                        + Integer.toString(time));
+                if(time <0) {
+                    stop_timer();
+                    resetTimer();
+                    if(!hasPlayed()){
+                        BroadcasterMediator bm = new BroadcasterMediator(ClientForm.this, server);
+                        bm.disconnect(getName());
+                    }
+                }
             }
         };
         timer.schedule(timeRefreshTask, 0, 1000);
+    }
+
+    public void stop_timer(){
+        timer.cancel();
     }
 
     private void create_status_bar() {
@@ -196,19 +218,18 @@ public class ClientForm extends JFrame{
     public void set_connected() {
         this.connect.setEnabled(false);
         this.disconnect.setEnabled(true);
-        this.gamepanel_active(true);
+        this.game_panel_active(true);
     }
 
     public void set_disconnected() {
         this.connect.setEnabled(true);
         this.disconnect.setEnabled(false);
-        this.gamepanel_active(false);
+        this.game_panel_active(false);
     }
 
     private class ButtonClickListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             String choice = e.getActionCommand();
-
             BroadcasterMediator bm = new BroadcasterMediator(ClientForm.this, server);
 
             bm.send_move(ClientForm.this.getName(), choice);

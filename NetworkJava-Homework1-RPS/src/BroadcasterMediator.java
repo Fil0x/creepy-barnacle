@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class BroadcasterMediator {
 
@@ -51,8 +50,10 @@ public class BroadcasterMediator {
                 Broadcaster b = new Broadcaster(destinations, msg, this.client_ui);
                 (new Thread(b)).start();
                 Server.players.clear();
+                server.clearRound();
                 Server.players.add(new Player(p.getName(), p.getIp_address(), p.getPort()));
                 client_ui.set_disconnected();
+                client_ui.update_player_label(1);
                 return;
             }
         }
@@ -74,7 +75,7 @@ public class BroadcasterMediator {
             }
         }
         String msg = "choice," + name + "," + choice;
-        client_ui.gamepanel_active(false);
+        client_ui.game_panel_active(false);
         server.addMove(name, choice);
         server.finalizeRound();
 

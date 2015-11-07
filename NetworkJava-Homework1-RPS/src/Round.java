@@ -8,16 +8,15 @@ public class Round {
     private volatile int sCounter = 0;
 
 
-    public boolean isRoundFinished(){
+    synchronized public boolean isRoundFinished(){
         return Server.players.size() == moves.size();
     }
 
-    public void addMove(String name, String choice){
+    synchronized public void addMove(String name, String choice){
         System.out.println("choice was : " + choice);
         if(! (choice.equals("Paper") || choice.equals("Scissors") || choice.equals("Rock"))) {
             throw new IllegalArgumentException("Invalid choice");
         }
-
         if(!moves.containsKey(name)){
             moves.put(name, choice);
             if(choice.equals("Paper")) pCounter ++;
@@ -42,5 +41,4 @@ public class Round {
         }
         return results;
     }
-
 }
