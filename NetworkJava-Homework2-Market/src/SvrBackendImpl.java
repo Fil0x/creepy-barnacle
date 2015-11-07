@@ -1,20 +1,35 @@
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
 
 
 public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
-    protected SvrBackendImpl() throws RemoteException {
+
+    private HashMap<String, ClientCallback> clients;
+    private String serverName;
+
+    protected SvrBackendImpl(String serverName) throws RemoteException {
         super();
+        this.serverName = serverName;
+        this.clients = new HashMap<>();
     }
 
     @Override
-    public void register(String name) throws RemoteException {
-
+    public synchronized void register(String name, ClientCallback callbackClientObj) throws RemoteException {
+        if(!this.clients.containsValue(callbackClientObj)) {
+            this.clients.put(name, callbackClientObj);
+        }
+        System.out.println("(ServerBackend) Registered new client: " + name);
     }
 
     @Override
-    public void unregister(String name) throws RemoteException {
-
+    public synchronized void unregister(String name, ClientCallback callbackClientObj) throws RemoteException {
+        if(this.clients.remove(name, callbackClientObj)) {
+            System.out.println("(ServerBackend) Unregistered client: " + name);
+        }
+        else {
+            System.out.println("(ServerBackend) Client " + name + " wasn't registered.");
+        }
     }
 
     @Override

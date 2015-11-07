@@ -1,34 +1,38 @@
 import java.awt.event.ActionListener;
+import java.rmi.RemoteException;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.List;
 import java.util.Timer;
 
 public class ClientForm extends JFrame{
-    private int name;
-    private String ip_addr;
-    private int port;
-    private String waiting = "Connect to another player or wait for a connection.";
+    private String name;
+    private Client rmi_client;
+    private String balance = "Balance: 0.0 SEK";
     private final static String newline = "\n";
 
     private JPanel main_panel;
-    private JLabel status_label, player_label;
-    private Timer timer;
-    private JTextArea connected;
+    private JLabel status_label;
     private JTextArea log;
-    private JMenuItem connect, disconnect;
-    private JButton rock_button, scissors_button, paper_button;
+    private JTable table;
+    private JButton refreshButton, buyButton, sellButton, placeWishButton;
+    private MyTableModel mytablemodel;
 
-
-    public ClientForm(int name, String ip_addr, int port) {
+    public ClientForm(String name, Client c) {
         this.name = name;
-        this.ip_addr = ip_addr;
-        this.port = port;
+        this.rmi_client = c;
 
         this.init_components();
+    }
+
+    public void quit() {
+        //Send a signal to the server to unregister
+        System.exit(0);
     }
 
     private void init_components() {
@@ -41,18 +45,9 @@ public class ClientForm extends JFrame{
         this.create_panel();
         this.create_status_bar();
 
+        this.setVisible(true);
         this.pack();
         this.setLocationRelativeTo(null); // center the window
-    }
-
-    public synchronized void gamepanel_active(boolean state) {
-        this.rock_button.setEnabled(state);
-        this.scissors_button.setEnabled(state);
-        this.paper_button.setEnabled(state);
-    }
-
-    public synchronized void clear_player_list() {
-        this.connected.setText("");
     }
 
     public synchronized void append_to_log(String msg) { this.log.append(msg + "\n"); }
@@ -62,7 +57,7 @@ public class ClientForm extends JFrame{
         status_panel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         status_panel.setPreferredSize(new Dimension(this.getWidth(), 16));
         status_panel.setLayout(new BoxLayout(status_panel, BoxLayout.X_AXIS));
-        status_label = new JLabel(this.waiting);
+        status_label = new JLabel(this.balance);
         status_label.setHorizontalAlignment(SwingConstants.LEFT);
         status_panel.add(status_label);
 
@@ -72,46 +67,77 @@ public class ClientForm extends JFrame{
     private void create_panel() {
         main_panel = new JPanel();
         main_panel.setLayout(new GridBagLayout());
-        main_panel.setPreferredSize(new Dimension(400, 300));
+        main_panel.setPreferredSize(new Dimension(600, 500));
 
         GridBagConstraints c = new GridBagConstraints();
 
-        // ROCK button
-        rock_button = new JButton("Rock");
-        rock_button.addActionListener(new ButtonClickListener());
+        // TABLE for the marketplace
+        mytablemodel = new MyTableModel();
+        table = new JTable(mytablemodel);
+        //table.setPreferredScrollableViewportSize(new Dimension(500, 70));
+        JScrollPane scrollPane =  new JScrollPane(table);
+        c.fill = GridBagConstraints.BOTH;
+        c.gridx = 0;
+        c.gridy = 2;
+        c.gridwidth = 2;
+        c.gridheight = 1;
+        c.weightx = 1;
+        c.weighty = 1;
+        main_panel.add(scrollPane, c);
+
+        // REFRESH button
+        refreshButton = new JButton("Refresh");
+        refreshButton.addActionListener(new ButtonClickListener());
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy = 0;
-        main_panel.add(rock_button, c);
-
-        // SCISSORS button
-        scissors_button = new JButton("Scissors");
-        scissors_button.addActionListener(new ButtonClickListener());
-        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridwidth = 1;
         c.weightx = 0.5;
+        c.weighty = 0.0;
+        main_panel.add(refreshButton, c);
+
+        // BUY button
+        buyButton = new JButton("Buy item");
+        buyButton.addActionListener(new ButtonClickListener());
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.gridy = 0;
-        main_panel.add(scissors_button, c);
-
-        // PAPER button
-        paper_button = new JButton("Paper");
-        paper_button.addActionListener(new ButtonClickListener());
-        c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 0.5;
+        c.weighty = 0.0;
+        main_panel.add(buyButton, c);
+
+        // SELL button
+        sellButton = new JButton("Sell item");
+        sellButton.addActionListener(new ButtonClickListener());
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 2;
         c.gridy = 0;
-        main_panel.add(paper_button, c);
+        c.weightx = 0.5;
+        c.weighty = 0.0;
+        main_panel.add(sellButton, c);
+
+        // PLACE WISH button
+        placeWishButton = new JButton("Place wish");
+        placeWishButton.addActionListener(new ButtonClickListener());
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 3;
+        c.gridy = 0;
+        c.weightx = 0.5;
+        c.weighty = 0.0;
+        main_panel.add(placeWishButton, c);
 
         // LABELS
         JLabel log_label = new JLabel("Log:");
-        c.gridx = 0;
-        c.gridy = 1;
-        main_panel.add(log_label, c);
-
-        player_label = new JLabel("Players:");
         c.gridx = 2;
         c.gridy = 1;
-        main_panel.add(player_label, c);
+        c.weightx = 0.0;
+        c.weighty = 0.0;
+        main_panel.add(log_label, c);
+
+        JLabel table_label = new JLabel("Available items:");
+        c.gridx = 0;
+        c.gridy = 1;
+        main_panel.add(table_label, c);
 
         // LOG
         log = new JTextArea();
@@ -120,26 +146,14 @@ public class ClientForm extends JFrame{
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         JScrollPane scroll = new JScrollPane(log);
         scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        c.weighty = 1;
-        c.fill = GridBagConstraints.BOTH;
-        c.anchor = GridBagConstraints.PAGE_END;
-        c.gridx = 0;
-        c.gridwidth = 2;
-        c.gridy = 2;
-        main_panel.add(scroll, c);
-
-        // PLAYERS CONNECTED
-        connected = new JTextArea();
-        connected.setEditable(false);
-        JScrollPane conn_scroll = new JScrollPane(connected);
-        conn_scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        c.weightx = 1;
         c.weighty = 1;
         c.fill = GridBagConstraints.BOTH;
         c.anchor = GridBagConstraints.PAGE_END;
         c.gridx = 2;
-        c.gridwidth = 2;
         c.gridy = 2;
-        main_panel.add(conn_scroll, c);
+        c.gridwidth = 2;
+        main_panel.add(scroll, c);
 
         this.add(main_panel, BorderLayout.CENTER);
     }
@@ -147,14 +161,6 @@ public class ClientForm extends JFrame{
     private void create_menu() {
         JMenuBar mb = new JMenuBar();
         JMenu menu = new JMenu("Actions");
-
-        connect = new JMenuItem("Connect");
-        connect.addActionListener(new ConnectAction());
-        menu.add(connect);
-
-        disconnect = new JMenuItem("Disconnect");
-        disconnect.addActionListener(new DisconnectAction());
-        menu.add(disconnect);
 
         JMenuItem exit = new JMenuItem("Exit");
         exit.addActionListener(new ExitAction());
@@ -167,28 +173,18 @@ public class ClientForm extends JFrame{
     private class ButtonClickListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             String choice = e.getActionCommand();
+            if (choice.equals("Refresh")) {
 
-        }
-    }
+            }
+            else if (choice.equals("Buy item")) {
 
-    private class ConnectAction extends AbstractAction {
-        public ConnectAction() {
-            super();
-        }
+            }
+            else if (choice.equals("Sell item")) {
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
+            }
+            else if (choice.equals("Place wish")) {
 
-        }
-    }
-
-    private class DisconnectAction extends AbstractAction {
-        public DisconnectAction() {
-            super();
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
+            }
 
         }
     }
@@ -200,7 +196,60 @@ public class ClientForm extends JFrame{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.exit(0);
+            ClientForm.this.quit();
         }
+    }
+}
+
+class MyTableModel extends AbstractTableModel {
+
+    private String[] columnNames = {"ItemID", "Name", "Price"};
+
+    private List<Object[]> data;
+
+    public MyTableModel() {
+        super();
+        data = new ArrayList<>();
+        data.add(new Object[]{"12345", "camera", 3000});
+        data.add(new Object[]{"54321", "keyboard", 2500});
+    }
+
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+        return false;
+    }
+
+    @Override
+    public int getRowCount() {
+        return data.size();
+    }
+
+    @Override
+    public int getColumnCount() {
+        return columnNames.length;
+    }
+
+    @Override
+    public String getColumnName(int col) {
+        return columnNames[col];
+    }
+
+    @Override
+    public Object getValueAt(int rowIndex, int columnIndex) {
+        return this.data.get(rowIndex)[columnIndex];
+    }
+
+    public void printDebugData() {
+        int numRows = getRowCount();
+        int numCols = getColumnCount();
+
+        for (int i = 0; i < numRows; i++) {
+            System.out.print("    row " + i + ":");
+            for (int j = 0; j < numCols; j++) {
+                System.out.print("  " + data.get(i)[j]);
+            }
+            System.out.println();
+        }
+        System.out.println("--------------------------");
     }
 }

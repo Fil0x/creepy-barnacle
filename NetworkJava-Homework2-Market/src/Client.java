@@ -9,17 +9,21 @@ import java.util.StringTokenizer;
 public class Client {
     private static final String USAGE = "java bankrmi.Client <bank_url>";
     private static final String DEFAULT_BANK_NAME = "Nordea";
+    private static final String DEFAULT_SERVER_NAME = "MyMarket";
+
     Account account;
     Bank bankobj;
-    private String bankname;
+    SvrBackend serverobj;
+    private String bankname, servername;
     String clientname;
 
     static enum CommandName {
-        newAccount, getAccount, deleteAccount, deposit, withdraw, balance, quit, help, list;
+        newAccount, getAccount, deleteAccount, deposit, withdraw, balance, quit, help, list
     };
 
-    public Client(String bankName) {
+    public Client(String bankName, String serverName) {
         this.bankname = bankName;
+        this.servername = serverName;
         try {
             try {
                 LocateRegistry.getRegistry(1099).list();
@@ -27,15 +31,17 @@ public class Client {
                 LocateRegistry.createRegistry(1099);
             }
             bankobj = (Bank) Naming.lookup(bankname);
+            serverobj = (SvrBackend) Naming.lookup(servername);
         } catch (Exception e) {
             System.out.println("The runtime failed: " + e.getMessage());
             System.exit(0);
         }
-        System.out.println("Connected to bank: " + bankname);
+        System.out.println("(Client) Connected to bank: " + bankname);
+        System.out.println("(Client) Connected to server: " + servername);
     }
 
     public Client() {
-        this(DEFAULT_BANK_NAME);
+        this(DEFAULT_BANK_NAME, DEFAULT_SERVER_NAME);
     }
 
     public void run() {
@@ -201,19 +207,27 @@ public class Client {
     }
 
     public static void main(String[] args) {
-        if ((args.length > 1) || (args.length > 0 && args[0].equals("-h"))) {
+        if ((args.length > 2) || (args.length > 0 && args[0].equals("-h"))) {
             System.out.println(USAGE);
             System.exit(1);
         }
 
-        String bankName;
-        if (args.length > 0) {
+        String bankName, serverName;
+        Client c = null;
+
+        if (args.length == 1) {
             bankName = args[0];
-            new Client(bankName).run();
-        } else {
-            new Client().run();
+            c = new Client(bankName, DEFAULT_SERVER_NAME);
+        }
+        else if (args.length ==  2) {
+            bankName = args[0];
+            serverName = args[1];
+            c = new Client(bankName, serverName);
+        }
+        else {
+            c = new Client();
         }
 
-        // ClientForm
+        ClientForm cf = new ClientForm("Filox", c);
     }
 }

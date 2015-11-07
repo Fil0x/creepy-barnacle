@@ -3,9 +3,9 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface SvrBackend extends Remote {
-    public void register(String name) throws RemoteException;
+    public void register(String name, ClientCallback callbackClientObj) throws RemoteException;
 
-    public void unregister(String name) throws RemoteException;
+    public void unregister(String name, ClientCallback callbackClientObj) throws RemoteException;
 
     public void sell(String name, String itemID) throws RemoteException;
 
