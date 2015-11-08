@@ -1,9 +1,9 @@
-/**
- * Created by Fadi on 07-Nov-15.
- */
+import java.util.Random;
+
 public class Utilities {
     public static String generateItemId() {
-
-        return "";
+        Random r = new Random();
+        int id = r.nextInt(10000);
+        return "id" + id;
     }
 }

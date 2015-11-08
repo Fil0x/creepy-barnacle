@@ -36,7 +36,7 @@ public class AccountImpl extends UnicastRemoteObject implements Account {
                     + ": Negative balance on withdraw: " + (balance - value));
         }
         balance -= value;
-        System.out.println("Transaction: Account " + name + ": withdraw: $" + value + ", balance: $"
+        System.out.println("(Account) Transaction: Account " + name + ": withdraw: $" + value + ", balance: $"
                 + balance);
     }
 

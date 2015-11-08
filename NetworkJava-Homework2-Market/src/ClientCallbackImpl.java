@@ -11,12 +11,12 @@ public class ClientCallbackImpl extends UnicastRemoteObject
     }
 
     @Override
-    public void wish_item_appeared(String itemID, String name, String value, String msg) throws RemoteException {
-
+    public void wish_item_appeared(String itemID, String name, float value, String msg) throws RemoteException {
+        System.out.println("(ClientCallback) Received: " +  msg);
     }
 
     @Override
     public void item_sold(String itemID, float amount, String msg) throws RemoteException {
-
+        System.out.println("(ClientCallback) Received: " +  msg);
     }
 }

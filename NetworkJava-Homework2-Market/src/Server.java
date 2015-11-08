@@ -21,6 +21,9 @@ public class Server {
             }
             Naming.rebind(bankName, bankobj);
             Naming.rebind(serverName, serverObj);
+
+            serverObj.set_bank(bankobj);
+
             System.out.println(bankobj + " is ready.");
             System.out.println(serverObj + " is ready.");
         } catch (Exception e) {
