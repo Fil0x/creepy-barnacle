@@ -31,8 +31,8 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
     }
 
     @Override
-    public synchronized void unregister(String name, ClientCallback callbackClientObj) throws RemoteException {
-        if(this.clients.remove(name, callbackClientObj)) {
+    public synchronized void unregister(String name) throws RemoteException {
+        if(this.clients.remove(name) != null) {
             System.out.println("(ServerBackend) Unregistered client: " + name);
         }
         else {
@@ -48,11 +48,13 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
             Item new_item = new Item(name, item_name, item_id, price);
             items.put(item_id, new_item);
 
+            System.out.println("(ServerBackend) New item posted: " + item_name + ", " + price);
+
             this.check_wishlist(new_item);
             return item_id;
         }
         else {
-            System.out.println("(ServerBackend) Client: " + name + "not registered");
+            System.out.println("(ServerBackend) Client: " + name + " not registered");
             return null;
         }
     }
@@ -82,16 +84,23 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
             System.out.println("(ServerBackend) Client " + name + " doesn't have an account.");
             return null;
         }
-
+        // Check if he wants to buy his own item
         Item item = this.items.get(itemID);
+        if (item.getName().equals(name)) {
+            return null;
+        }
+
         Account seller_acc = this.rmi_bank.getAccount(item.getName());
+        ClientCallback c = clients.get(item.getName());
         try {
             // Complete the transaction
             buyer_acc.withdraw(item.getPrice());
             seller_acc.deposit(item.getPrice());
+            // Remove the item from the available stuff
+            System.out.println("(ServerBackend) Removing item: " + itemID);
+            this.items.remove(itemID);
             // Notify the seller
-            ClientCallback c = clients.get(item.getName());
-            c.item_sold(item.getItemid(), item.getPrice(), "Item sold to " + name);
+            c.item_sold(item.getItem_name(), item.getPrice(), name);
 
             return item;
         } catch (RejectedException e) {

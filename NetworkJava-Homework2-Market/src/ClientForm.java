@@ -11,6 +11,11 @@ import java.util.List;
 import java.util.Timer;
 
 public class ClientForm extends JFrame{
+    @Override
+    public String getName() {
+        return name;
+    }
+
     private String name;
     private Client rmi_client;
     private String balance = "Balance: 0.0 SEK";
@@ -31,13 +36,14 @@ public class ClientForm extends JFrame{
     }
 
     public void quit() {
-        //Send a signal to the server to unregister
+        ClientMediator.getInstance().unregister(name);
+
         System.exit(0);
     }
 
     private void init_components() {
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        this.setTitle("Virtual Marketplace - Client 0.1a");
+        this.setTitle("Virtual Marketplace - Connected as " + name + "- Client 0.1a");
 
         this.setLayout(new BorderLayout());
 
@@ -48,9 +54,18 @@ public class ClientForm extends JFrame{
         this.setVisible(true);
         this.pack();
         this.setLocationRelativeTo(null); // center the window
+
+        // Get the initial balance
+        ClientMediator c = ClientMediator.getInstance();
+        this.update_status_label(c.getBalance(name));
+        this.refresh_table(c.refresh());
     }
 
-    public synchronized void append_to_log(String msg) { this.log.append(msg + "\n"); }
+    public synchronized void append_to_log(String msg) { this.log.append(msg + newline); }
+
+    public synchronized void update_status_label(float value) {
+        this.status_label.setText("Balance: " + value + " SEK");
+    }
 
     private void create_status_bar() {
         JPanel status_panel = new JPanel();
@@ -170,13 +185,13 @@ public class ClientForm extends JFrame{
         this.setJMenuBar(mb);
     }
 
-    private void createPopUp(String type){
+    private void createSellPopup() {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(2, 2));
 
         JLabel itemName_label = new JLabel("Item name:");
         JTextField itemName_input = new JTextField("");
-        JLabel price_label = new JLabel("Price");
+        JLabel price_label = new JLabel("Price: ");
         JTextField price_input = new JTextField();
 
         panel.add(itemName_label);
@@ -186,36 +201,91 @@ public class ClientForm extends JFrame{
 
         int okCxl = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(ClientForm.this),
                 panel,
-                "Sell an item",
+                "(" + name + ") Sell an item",
                 JOptionPane.OK_CANCEL_OPTION);
 
-        if (okCxl == JOptionPane.OK_OPTION )
+        if (okCxl == JOptionPane.OK_OPTION)
         {
+            ClientMediator c = ClientMediator.getInstance();
+            c.sell(name, itemName_input.getText(), Float.parseFloat(price_input.getText()));
+            this.refresh_table(c.refresh());
+        }
+    }
 
+    public void refresh_table(HashMap<String, Item> refresh) {
+        MyTableModel t = (MyTableModel) this.table.getModel();
+        t.updateData(refresh);
+    }
+
+    private void createWishPopup() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(2, 2));
+
+        JLabel itemName_label = new JLabel("Filter:");
+        JTextField itemName_input = new JTextField();
+        JLabel price_label = new JLabel("Max price:");
+        JTextField price_input = new JTextField();
+
+        panel.add(itemName_label);
+        panel.add(itemName_input);
+        panel.add(price_label);
+        panel.add(price_input);
+
+        int okCxl = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(ClientForm.this),
+                panel,
+                "(" + name + ") Add an item to your wishlist",
+                JOptionPane.OK_CANCEL_OPTION);
+
+        if (okCxl == JOptionPane.OK_OPTION)
+        {
+            ClientMediator c = ClientMediator.getInstance();
+            float price = Float.parseFloat(price_input.getText());
+            if(c.placeWishList(name, itemName_input.getText(), price))
+                append_to_log("Added to wishlist: [" + itemName_input.getText() + "] < " + price);
+            else
+                append_to_log("Add to wishlist failed");
         }
     }
 
     private class ButtonClickListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             String choice = e.getActionCommand();
+
             int selectedRow = table.getSelectedRow();
-            ClientMediator clientMediator = new ClientMediator(rmi_client,ClientForm.this);
-            String id = (String) table.getModel().getValueAt(selectedRow, 0);
-            switch (choice) {
-                case "Refresh":
-                    HashMap<String, Item> allItems = clientMediator.refresh();
-                    break;
-                case "Buy item":
-                    clientMediator.buy(name, id);
-                    break;
-                case "Sell item":
-                    createPopUp("sell");
-                    break;
-                case "Place wish":
-                    createPopUp("place wish");
-                    break;
-                default:
-                    throw new IllegalArgumentException("(client) invalid choice");
+
+            ClientMediator clientMediator = ClientMediator.getInstance();
+
+            if (choice.equals("Refresh")) {
+                ClientForm.this.refresh_table(clientMediator.refresh());
+            }
+            else if (choice.equals("Buy item")) {
+                if (selectedRow == -1) {
+                    ClientForm.this.append_to_log("Choose an item to buy.");
+                    return;
+                }
+
+                String id = (String) table.getModel().getValueAt(selectedRow, 0);
+                Item i = clientMediator.buy(name, id);
+                if (i != null) {
+                    // Transaction succeeded
+                    append_to_log("Bought [" + i.getItem_name() + "] for " + i.getPrice() + " SEK");
+                    ClientForm.this.update_status_label(clientMediator.getBalance(name));
+                    ClientForm.this.refresh_table(clientMediator.refresh());
+                }
+                else {
+                    // Not enough credits
+                    ClientForm.this.append_to_log("Error: Not enough funds or own item.");
+                }
+            }
+            else if (choice.equals("Sell item")) {
+                createSellPopup();
+            }
+            else if (choice.equals("Place wish")) {
+                createWishPopup();
+
+            }
+            else {
+                throw new IllegalArgumentException("(ClientMediator) Invalid choice.");
             }
 
         }
@@ -242,8 +312,6 @@ class MyTableModel extends AbstractTableModel {
     public MyTableModel() {
         super();
         data = new ArrayList<>();
-        this.addRow("3132", "camera", 5000);
-        this.addRow("54321", "video", 2500);
     }
 
     public void addRow(String itemid, String itemname, float value) {
@@ -273,6 +341,15 @@ class MyTableModel extends AbstractTableModel {
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         return this.data.get(rowIndex)[columnIndex];
+    }
+
+    public void updateData(HashMap<String, Item> items) {
+        data = new ArrayList<>();
+        for(Item i: items.values()) {
+            data.add(i.toObjectArray());
+        }
+
+        this.fireTableRowsInserted(0, data.size()-1);
     }
 
     public void printDebugData() {

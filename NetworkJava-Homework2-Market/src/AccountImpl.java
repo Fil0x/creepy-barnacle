@@ -21,7 +21,7 @@ public class AccountImpl extends UnicastRemoteObject implements Account {
             throw new RejectedException("Rejected: Account " + name + ": Illegal value: " + value);
         }
         balance += value;
-        System.out.println("Transaction: Account " + name + ": deposit: $" + value + ", balance: $"
+        System.out.println("(Account) Transaction: Account " + name + ": deposit: $" + value + ", balance: $"
                 + balance);
     }
 

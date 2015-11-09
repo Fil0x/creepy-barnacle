@@ -6,7 +6,7 @@ import java.util.HashMap;
 public interface SvrBackend extends Remote {
     void register(String name, ClientCallback callbackClientObj) throws RemoteException;
 
-    void unregister(String name, ClientCallback callbackClientObj) throws RemoteException;
+    void unregister(String name) throws RemoteException;
 
     String sell(String name, String itemName, float price) throws RemoteException;
 
