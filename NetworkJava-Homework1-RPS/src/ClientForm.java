@@ -8,16 +8,14 @@ import java.awt.event.ActionEvent;
 import java.util.Timer;
 
 public class ClientForm extends JFrame{
-    final int TIME_TO_WAIT = 6;
+    final int TIME_TO_WAIT = 30;
     private int name;
     private String ip_addr;
     private int port;
-    private String waiting = "Connect to another player or wait for a connection.";
     private final static String newline = "\n";
 
     private Server server;
 
-    private JPanel main_panel;
     private JLabel status_label, player_label;
     private Timer timer;
     private int time;
@@ -113,7 +111,8 @@ public class ClientForm extends JFrame{
         status_panel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         status_panel.setPreferredSize(new Dimension(this.getWidth(), 16));
         status_panel.setLayout(new BoxLayout(status_panel, BoxLayout.X_AXIS));
-        status_label = new JLabel(this.waiting);
+        String waiting = "Connect to another player or wait for a connection.";
+        status_label = new JLabel(waiting);
         status_label.setHorizontalAlignment(SwingConstants.LEFT);
         status_panel.add(status_label);
 
@@ -121,7 +120,7 @@ public class ClientForm extends JFrame{
     }
 
     private void create_panel() {
-        main_panel = new JPanel();
+        JPanel main_panel = new JPanel();
         main_panel.setLayout(new GridBagLayout());
         main_panel.setPreferredSize(new Dimension(400, 300));
 

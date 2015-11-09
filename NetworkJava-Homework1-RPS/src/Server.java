@@ -13,10 +13,10 @@ public class Server {
 
     private final ClientForm client_ui;
 
+
     // This class receives data from the other players-clients
     public Server(String name, InetAddress ip_address, int port, ClientForm cf){
         this.client_ui = cf;
-
         // Add ourselves in the player list
         players.add(new Player(name, ip_address, port));
     }
@@ -28,9 +28,6 @@ public class Server {
             try {
                 DatagramSocket serverSocket = new DatagramSocket(port);
                 byte[] recv_data = new byte[1024];
-//                    byte[] reply_data = new byte[1024];
-
-                System.out.println("(Server) Waiting for clients to connect...");   //TODO del
                 append_log("(INFO) Waiting for players to connect...");
                 while (true) {
                     DatagramPacket recv_packet = new DatagramPacket(recv_data, recv_data.length);
@@ -38,7 +35,6 @@ public class Server {
                     clientProcessingPool.submit(new ClientTask(recv_packet));
                 }
             } catch (SocketException e) {
-                System.err.println("(Server) Unable to process client request");    //TODO del
                 append_log("(ERROR) Unable to process client request");
                 e.printStackTrace();
             } catch (IOException e) {
@@ -51,9 +47,7 @@ public class Server {
     }
 
     public static synchronized void printPlayers(){
-        for (int i = 0; i < players.size(); i++) {
-            System.out.println(players.get(i));
-        }
+        players.forEach(System.out::println);
     }
 
     public synchronized void addMove(String name, String choice){
@@ -137,6 +131,7 @@ public class Server {
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }
+
             }
             else if (Objects.equals(command, "new_view")) {
                 players.clear();

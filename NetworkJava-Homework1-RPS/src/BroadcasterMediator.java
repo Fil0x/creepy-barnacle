@@ -13,12 +13,11 @@ public class BroadcasterMediator {
     public void connect(String dest_ip_addr, String dest_port, int name, String ip_addr, int port) {
 
         if(dest_ip_addr.equals(ip_addr) && dest_port.equals(Integer.toString(port)) ) {
-            System.out.println("error: trying to connect to ourselves"); //TODO del
             client_ui.append_to_log("(WARN) Can't connect to yourself.");
+            client_ui.set_disconnected();
             return;
         }
         if(Server.players.size()!=1){
-            System.out.println("error: already connected to a game, first disconnect"); //TODO del
             client_ui.append_to_log("(WARN) Already connected to a game.");
             client_ui.set_connected();
             return;
@@ -26,9 +25,8 @@ public class BroadcasterMediator {
         String msg = "connect," + name + "," + ip_addr + "," + port;
         ArrayList<String> dest = new ArrayList<>();
         dest.add(dest_ip_addr + " " + dest_port);
-        Broadcaster b = new Broadcaster(dest, msg, this.client_ui);
+        Broadcaster b = new Broadcaster(dest, msg);
         (new Thread(b)).start();
-        client_ui.set_connected();
     }
 
     public void disconnect(String name) {
@@ -47,7 +45,7 @@ public class BroadcasterMediator {
                 }
                 client_ui.clear_player_list();
 
-                Broadcaster b = new Broadcaster(destinations, msg, this.client_ui);
+                Broadcaster b = new Broadcaster(destinations, msg);
                 (new Thread(b)).start();
                 Server.players.clear();
                 server.clearRound();
@@ -61,25 +59,24 @@ public class BroadcasterMediator {
     }
 
     public void new_view(ArrayList<String> destinations, String message) {
-        Broadcaster b = new Broadcaster(destinations, message, this.client_ui);
+        Broadcaster b = new Broadcaster(destinations, message);
         (new Thread(b)).start();
     }
 
     public void send_move(String name, String choice){
         ArrayList<String> destinations = new ArrayList<>();
-        for (Player p : Server.players) {
-            if(!(p.getName().equals(name))) {
-                // Destinations
-                String player_data = p.getIp_address().getHostAddress() + " " + p.getPort();
-                destinations.add(player_data);
-            }
-        }
+        // Destinations
+        Server.players.stream().filter(p -> !(p.getName().equals(name))).forEach(p -> {
+            // Destinations
+            String player_data = p.getIp_address().getHostAddress() + " " + p.getPort();
+            destinations.add(player_data);
+        });
         String msg = "choice," + name + "," + choice;
         client_ui.game_panel_active(false);
         server.addMove(name, choice);
         server.finalizeRound();
 
-        Broadcaster b = new Broadcaster(destinations, msg, this.client_ui);
+        Broadcaster b = new Broadcaster(destinations, msg);
         (new Thread(b)).start();
     }
 }

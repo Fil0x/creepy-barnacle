@@ -1,7 +1,6 @@
 import java.net.InetAddress;
 
 public class Player {
-    private String move;
     private String name;
 
     public void setTotalScore(int totalScore) {
@@ -13,10 +12,6 @@ public class Player {
     private InetAddress ip_address;
     private int port;
 
-    public void setMove(String move) {
-        this.move = move;
-    }
-
     public void setScore(int score) {
         this.score = score;
         this.totalScore += score;
@@ -24,10 +19,6 @@ public class Player {
 
     public void setAbsoluteScore(int score){
         this.score = score;
-    }
-
-    public String getMove() {
-        return move;
     }
 
     public int getTotalScore() {
@@ -56,7 +47,6 @@ public class Player {
         this.port = port;
         totalScore = 0;
         score = 0;
-        move = "";
     }
 
     @Override

@@ -27,9 +27,8 @@ public class Utilities  {
     public static boolean verify_port(String port) {
         try {
             Integer.parseInt(port);
-            return true;
+            return !(Integer.parseInt(port) < 0 && Integer.parseInt(port) > 65535);
         } catch (NumberFormatException e) {
-
             return false;
         }
     }

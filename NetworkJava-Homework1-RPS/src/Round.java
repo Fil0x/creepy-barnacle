@@ -14,14 +14,22 @@ public class Round {
 
     synchronized public void addMove(String name, String choice){
         System.out.println("choice was : " + choice);
-        if(! (choice.equals("Paper") || choice.equals("Scissors") || choice.equals("Rock"))) {
-            throw new IllegalArgumentException("Invalid choice");
-        }
+
         if(!moves.containsKey(name)){
             moves.put(name, choice);
-            if(choice.equals("Paper")) pCounter ++;
-            else if(choice.equals("Scissors")) sCounter ++;
-            else rCounter ++;
+            switch (choice) {
+                case "Paper":
+                    pCounter++;
+                    break;
+                case "Scissors":
+                    sCounter++;
+                    break;
+                case "Rock":
+                    rCounter++;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid choice");
+            }
         }
     }
 
