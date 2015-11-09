@@ -151,7 +151,9 @@ public class Server {
 
                 if(players.size() == 1){
                     clearRound();
-                    players.forEach(Player::resetScore);
+                    for (Player p: players){
+                        p.resetScore();
+                    }
                     client_ui.clear_player_list();
                     client_ui.set_disconnected();
                     client_ui.update_player_label(1);
