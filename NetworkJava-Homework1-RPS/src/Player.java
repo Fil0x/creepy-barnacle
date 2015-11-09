@@ -41,6 +41,11 @@ public class Player {
         return name;
     }
 
+    public void resetScore(){
+        totalScore = 0;
+        score = 0;
+    }
+
     public Player(String name, InetAddress ip_address, int port){
         this.name = name;
         this.ip_address = ip_address;
