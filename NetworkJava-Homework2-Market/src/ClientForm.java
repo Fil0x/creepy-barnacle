@@ -170,20 +170,52 @@ public class ClientForm extends JFrame{
         this.setJMenuBar(mb);
     }
 
+    private void createPopUp(String type){
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(2, 2));
+
+        JLabel itemName_label = new JLabel("Item name:");
+        JTextField itemName_input = new JTextField("");
+        JLabel price_label = new JLabel("Price");
+        JTextField price_input = new JTextField();
+
+        panel.add(itemName_label);
+        panel.add(itemName_input);
+        panel.add(price_label);
+        panel.add(price_input);
+
+        int okCxl = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(ClientForm.this),
+                panel,
+                "Sell an item",
+                JOptionPane.OK_CANCEL_OPTION);
+
+        if (okCxl == JOptionPane.OK_OPTION )
+        {
+
+        }
+    }
+
     private class ButtonClickListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             String choice = e.getActionCommand();
-            if (choice.equals("Refresh")) {
-
-            }
-            else if (choice.equals("Buy item")) {
-
-            }
-            else if (choice.equals("Sell item")) {
-
-            }
-            else if (choice.equals("Place wish")) {
-
+            int selectedRow = table.getSelectedRow();
+            ClientMediator clientMediator = new ClientMediator(rmi_client,ClientForm.this);
+            String id = (String) table.getModel().getValueAt(selectedRow, 0);
+            switch (choice) {
+                case "Refresh":
+                    HashMap<String, Item> allItems = clientMediator.refresh();
+                    break;
+                case "Buy item":
+                    clientMediator.buy(name, id);
+                    break;
+                case "Sell item":
+                    createPopUp("sell");
+                    break;
+                case "Place wish":
+                    createPopUp("place wish");
+                    break;
+                default:
+                    throw new IllegalArgumentException("(client) invalid choice");
             }
 
         }
@@ -210,8 +242,12 @@ class MyTableModel extends AbstractTableModel {
     public MyTableModel() {
         super();
         data = new ArrayList<>();
-        data.add(new Object[]{"12345", "camera", 3000});
-        data.add(new Object[]{"54321", "keyboard", 2500});
+        this.addRow("3132", "camera", 5000);
+        this.addRow("54321", "video", 2500);
+    }
+
+    public void addRow(String itemid, String itemname, float value) {
+        data.add(new Object[]{itemid, itemname, value});
     }
 
     @Override

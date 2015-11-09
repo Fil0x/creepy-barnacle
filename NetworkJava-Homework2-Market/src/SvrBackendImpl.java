@@ -44,12 +44,12 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
     public String sell(String name, String item_name, float price) throws RemoteException {
         // A client wants to put up something for sale
         if(clients.containsKey(name)){
-            String itemid = Utilities.generateItemId();
-            Item new_item = new Item(name, item_name, itemid, price);
-            items.put(itemid, new_item);
+            String item_id = Utilities.generateItemId();
+            Item new_item = new Item(name, item_name, item_id, price);
+            items.put(item_id, new_item);
 
             this.check_wishlist(new_item);
-            return itemid;
+            return item_id;
         }
         else {
             System.out.println("(ServerBackend) Client: " + name + "not registered");
@@ -79,7 +79,7 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
         // Does the client have an account in the bank?
         Account buyer_acc = this.rmi_bank.getAccount(name);
         if(buyer_acc == null) {
-            System.out.println("(ServerBackend) Client " + name + " doesnt have an account.");
+            System.out.println("(ServerBackend) Client " + name + " doesn't have an account.");
             return null;
         }
 
@@ -108,7 +108,7 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
     @Override
     public void place_wish(String name, String itemname, float max_price) throws RemoteException {
         Wish w = new Wish(itemname, max_price);
-        if(this.wishlist.get(name) == null) {
+        if(!this.wishlist.containsKey(name)) {
             ArrayList<Wish> new_list = new ArrayList<>();
             new_list.add(w);
             this.wishlist.put(name, new_list);

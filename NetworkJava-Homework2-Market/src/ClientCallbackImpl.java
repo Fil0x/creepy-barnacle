@@ -1,12 +1,9 @@
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-/**
- * Created by Fadi on 07-Nov-15.
- */
 public class ClientCallbackImpl extends UnicastRemoteObject
         implements ClientCallback {
-    protected ClientCallbackImpl() throws RemoteException {
+    public ClientCallbackImpl() throws RemoteException {
         super();
     }
 

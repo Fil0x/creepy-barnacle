@@ -11,15 +11,24 @@ public class Client {
     private static final String DEFAULT_BANK_NAME = "Nordea";
     private static final String DEFAULT_SERVER_NAME = "MyMarket";
 
-    Account account;
-    Bank bankobj;
-    SvrBackend serverobj;
-    private String bankname, servername;
-    String clientname;
+    private Account account;
+    private Bank bankobj;
 
-    static enum CommandName {
+    public SvrBackend getServerobj() {
+        return serverobj;
+    }
+
+    public Bank getBankobj() {
+        return bankobj;
+    }
+
+    private SvrBackend serverobj;
+    private String bankname, servername;
+    private String clientname;
+
+    private static enum CommandName {
         newAccount, getAccount, deleteAccount, deposit, withdraw, balance, quit, help, list
-    };
+    }
 
     public Client(String bankName, String serverName) {
         this.bankname = bankName;

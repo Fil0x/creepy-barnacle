@@ -44,4 +44,8 @@ public class Item {
         this.item_name = item_name;
         this.price = price;
     }
+
+    public Object[] toObjectArray(){
+        return new Object[]{itemid, item_name, price};
+    }
 }

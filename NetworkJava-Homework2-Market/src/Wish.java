@@ -10,9 +10,7 @@ public class Wish {
     }
 
     public boolean isSatisfied(String candidate, float value) {
-        if(this.itemname.contains(candidate) && this.maxValue >= value)
-            return true;
-        return false;
+        return this.itemname.contains(candidate) && this.maxValue >= value;
     }
 
     public String getItemname() {
