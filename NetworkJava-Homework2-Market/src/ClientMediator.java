@@ -14,8 +14,6 @@ public class ClientMediator {
         this.clientForm = clientForm;
     }
 
-    protected ClientMediator() {}
-
     public static ClientMediator getInstance() {
         if (instance == null)
             instance = new ClientMediator();
@@ -83,6 +81,6 @@ public class ClientMediator {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-        return 0;
+        return -1;
     }
 }

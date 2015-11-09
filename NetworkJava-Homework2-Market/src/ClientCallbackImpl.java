@@ -12,7 +12,8 @@ public class ClientCallbackImpl extends UnicastRemoteObject
         System.out.println("(ClientCallback) Item on wishlist appeared: " +  msg);
         ClientMediator c = ClientMediator.getInstance();
         c.append_to_log("Wishlist item appeared: " + name + "[" + itemID + "]@" + value);
-        c.append_to_log("Refresh...");
+        c.append_to_log("Refreshing...");
+        c.update_table();
     }
 
     @Override

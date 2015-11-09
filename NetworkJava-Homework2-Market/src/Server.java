@@ -1,7 +1,6 @@
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
-import java.util.HashMap;
 
 public class Server {
     private static final String USAGE = "java bankrmi.Server <bank_rmi_url>";
@@ -11,7 +10,7 @@ public class Server {
     public Server(String bankName, String serverName) {
         try {
             Bank bankobj = new BankImpl(bankName);
-            SvrBackendImpl serverObj = new SvrBackendImpl(serverName);
+            SvrBackendImpl serverObj = new SvrBackendImpl();
 
             // Register the newly created back and SvrBackendImpl objects at rmiregistry.
             try {

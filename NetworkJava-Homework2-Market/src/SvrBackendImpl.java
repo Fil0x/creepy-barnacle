@@ -9,12 +9,10 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
     private HashMap<String, ClientCallback> clients;
     private HashMap<String, Item> items;
     private HashMap<String, ArrayList<Wish>> wishlist;
-    private String serverName;
     private Bank rmi_bank;
 
-    protected SvrBackendImpl(String serverName) throws RemoteException {
+    protected SvrBackendImpl() throws RemoteException {
         super();
-        this.serverName = serverName;
         this.clients = new HashMap<>();
         this.items = new HashMap<>();
         this.wishlist = new HashMap<>();
