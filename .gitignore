@@ -16,8 +16,8 @@ hs_err_pid*
 # *.iml
 
 ## Directory-based project format:
-NetworkJava-Homework1-RPS/.idea/
-NetworkJava-Homework2-Market/.idea/
+# NetworkJava-Homework1-RPS/.idea/
+# NetworkJava-Homework2-Market/.idea/
 # if you remove the above rule, at least ignore the following:
 
 # User-specific stuff:
