@@ -56,7 +56,7 @@ public class ClientMediator {
     }
 
     public void update_balance() {
-        clientForm.update_status_label(this.getBalance(clientForm.getName()));
+        clientForm.update_status_label(this.getUserInfo(clientForm.getName()));
     }
 
     public void append_to_log(String msg) {
@@ -78,29 +78,77 @@ public class ClientMediator {
         }
     }
 
-    public float getBalance(String name) {
+    public String getUserInfo(String name) {
         try {
-            return client.getBankobj().getAccount(name).getBalance();
+            float balance = client.getBankobj().getAccount(name).getBalance();
+            int[] metrics = client.getServerobj().getMetrics(name);
+
+            if (metrics == null) {
+                return "Balance: " + balance + " SEK";
+            }
+            else {
+                return "Balance: " + balance + " SEK, Purchases: " + metrics[0] + ", Sales: " + metrics[1];
+            }
         } catch (RemoteException | RejectedException e) {
             e.printStackTrace();
         }
-        return -1;
+        return "Error retrieving info";
+    }
+
+    private void register_callback(String username) {
+        try {
+            // Register a callback
+            ClientCallback c = new ClientCallbackImpl();
+            this.client.getServerobj().register(username, c);
+            // Create a bank account
+            Account acc;
+            acc = this.client.getBankobj().newAccount(username);
+            // Free money
+            acc.deposit(5000);
+        }
+        catch (RejectedException r) {
+            System.out.println("(Client) Account " + username + " already exists." );
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean login(String username, String password){
         try {
-            return client.getServerobj().login(username,password);
+            if(client.getServerobj().login(username,password)) {
+                ClientForm cf = new ClientForm(username, client);
+                this.setClientForm(cf);
+                this.register_callback(username);
+                clientForm.setVisible(true);
+                return true;
+            }
+            return false;
         } catch (RemoteException e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    public void register(String username, String password){
+    public void logout(String username, boolean showLogin) {
+        unregister(username);
+        if(showLogin) {
+            clientForm.setVisible(false);
+            clientForm.dispose();
+            new Login();
+        }
+    }
+
+    public boolean register(String username, String password){
         try {
-            client.getServerobj().create_client(username,password);
+            if(client.getServerobj().create_client(username,password)) {
+                this.register_callback(username);
+                return true;
+            }
+            else
+                return false;
         } catch (RemoteException e) {
             e.printStackTrace();
+            return false;
         }
     }
 }

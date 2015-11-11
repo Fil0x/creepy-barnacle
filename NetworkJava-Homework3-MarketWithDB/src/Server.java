@@ -16,6 +16,7 @@ public class Server {
         try {
             Bank bankobj = new BankImpl(DATASOURCE);
             SvrBackendImpl serverobj = new SvrBackendImpl();
+            serverobj.set_bank(bankobj);
 
             // Register the newly created object at rmiregistry.
             try {

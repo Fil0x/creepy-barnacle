@@ -8,8 +8,9 @@ import java.awt.event.ActionListener;
 
 public class Login extends JFrame{
 
-    private JTextField usernameField = new JTextField();
-    private JPasswordField passwordField = new JPasswordField();
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+    private JLabel statusLabel;
 
     public Login(){
         initComponents();
@@ -27,7 +28,10 @@ public class Login extends JFrame{
 
         JLabel usernameLabel = new JLabel("Username:");
         JLabel passwordLabel = new JLabel("Password");
+        statusLabel = new JLabel(" ");
 
+        usernameField = new JTextField();
+        passwordField = new JPasswordField();
 
         JButton registerButton = new JButton("Register");
         JButton loginButton = new JButton("Login");
@@ -66,6 +70,11 @@ public class Login extends JFrame{
         c.gridy = 2;
         mainPanel.add(cancelButton, c);
 
+        c.gridx = 0;
+        c.gridy = 3;
+        c.gridwidth = 3;
+        mainPanel.add(statusLabel, c);
+
         loginButton.addActionListener(new ButtonClickListener());
         cancelButton.addActionListener(new ButtonClickListener());
         registerButton.addActionListener(new ButtonClickListener());
@@ -85,13 +94,22 @@ public class Login extends JFrame{
             String password = String.valueOf(Login.this.passwordField.getPassword());
 
             if (choice.equals("Register")){
-                clientMediator.register(username,password);
-                System.out.println("registered !!! ");
+                if(clientMediator.register(username,password)) {
+                    statusLabel.setText("Registered. Now press Login...");
+                    System.out.println("(Login) Successfully registered account " + username);
+                }
+                else {
+                    statusLabel.setText("Invalid username/password(8 chars min)");
+                }
             } else if (choice.equals("Login")) {
                 if(clientMediator.login(username, password)) {
                     System.out.println("LOGGED IN !!");
-                }else{
-                    System.out.println("error login");
+                    Login.this.setVisible(false);
+                    Login.this.dispose();
+                }
+                else {
+                    System.out.println("(Login) Invalid credentials.");
+                    statusLabel.setText("Invalid Credentials");
                 }
             }
             else if (choice.equals("Cancel")) {

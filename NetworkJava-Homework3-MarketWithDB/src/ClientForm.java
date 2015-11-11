@@ -1,5 +1,4 @@
 import java.awt.event.ActionListener;
-import java.rmi.RemoteException;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -8,7 +7,6 @@ import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
-import java.util.Timer;
 
 public class ClientForm extends JFrame{
     @Override
@@ -36,7 +34,7 @@ public class ClientForm extends JFrame{
     }
 
     public void quit() {
-        ClientMediator.getInstance().unregister(name);
+        ClientMediator.getInstance().logout(name, false);
 
         System.exit(0);
     }
@@ -51,20 +49,19 @@ public class ClientForm extends JFrame{
         this.create_panel();
         this.create_status_bar();
 
-        //this.setVisible(true);
         this.pack();
         this.setLocationRelativeTo(null); // center the window
 
         // Get the initial balance
         ClientMediator c = ClientMediator.getInstance();
-        this.update_status_label(c.getBalance(name));
+        this.update_status_label(c.getUserInfo(name));
         this.refresh_table(c.refresh());
     }
 
     public synchronized void append_to_log(String msg) { this.log.append(msg + newline); }
 
-    public synchronized void update_status_label(float value) {
-        this.status_label.setText("Balance: " + value + " SEK");
+    public synchronized void update_status_label(String msg) {
+        this.status_label.setText(msg);
     }
 
     private void create_status_bar() {
@@ -177,6 +174,10 @@ public class ClientForm extends JFrame{
         JMenuBar mb = new JMenuBar();
         JMenu menu = new JMenu("Actions");
 
+        JMenuItem logout = new JMenuItem("Logout");
+        logout.addActionListener(new LogoutAction());
+        menu.add(logout);
+
         JMenuItem exit = new JMenuItem("Exit");
         exit.addActionListener(new ExitAction());
         menu.add(exit);
@@ -240,7 +241,7 @@ public class ClientForm extends JFrame{
         {
             ClientMediator c = ClientMediator.getInstance();
             float price = Float.parseFloat(price_input.getText());
-            if(c.placeWishList(name, itemName_input.getText(), price))
+            if(c.placeWishList(name, itemName_input.getText().trim(), price))
                 append_to_log("Added to wishlist: [" + itemName_input.getText() + "] < " + price);
             else
                 append_to_log("Add to wishlist failed");
@@ -269,7 +270,7 @@ public class ClientForm extends JFrame{
                 if (i != null) {
                     // Transaction succeeded
                     append_to_log("Bought [" + i.getItem_name() + "] for " + i.getPrice() + " SEK");
-                    ClientForm.this.update_status_label(clientMediator.getBalance(name));
+                    ClientForm.this.update_status_label(clientMediator.getUserInfo(name));
                     ClientForm.this.refresh_table(clientMediator.refresh());
                 }
                 else {
@@ -282,7 +283,6 @@ public class ClientForm extends JFrame{
             }
             else if (choice.equals("Place wish")) {
                 createWishPopup();
-
             }
             else {
                 throw new IllegalArgumentException("(ClientMediator) Invalid choice.");
@@ -299,6 +299,17 @@ public class ClientForm extends JFrame{
         @Override
         public void actionPerformed(ActionEvent e) {
             ClientForm.this.quit();
+        }
+    }
+
+    private class LogoutAction extends AbstractAction {
+        public LogoutAction() {
+            super();
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            ClientMediator.getInstance().logout(ClientForm.this.getName(), true);
         }
     }
 }

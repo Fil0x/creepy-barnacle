@@ -240,8 +240,8 @@ public class ClientForm extends JFrame{
         {
             ClientMediator c = ClientMediator.getInstance();
             float price = Float.parseFloat(price_input.getText());
-            if(c.placeWishList(name, itemName_input.getText(), price))
-                append_to_log("Added to wishlist: [" + itemName_input.getText() + "] < " + price);
+            if(c.placeWishList(name, itemName_input.getText().trim(), price))
+                append_to_log("Added to wishlist: [" + itemName_input.getText().trim() + "] < " + price);
             else
                 append_to_log("Add to wishlist failed");
         }

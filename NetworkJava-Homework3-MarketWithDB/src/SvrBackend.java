@@ -18,5 +18,7 @@ public interface SvrBackend extends Remote {
 
     boolean login(String username, String password) throws RemoteException;
 
-    void create_client(String username, String password) throws RemoteException;
+    boolean create_client(String username, String password) throws RemoteException;
+
+    int[] getMetrics(String username) throws RemoteException;
 }

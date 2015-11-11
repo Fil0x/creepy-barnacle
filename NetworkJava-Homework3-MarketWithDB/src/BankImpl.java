@@ -36,8 +36,8 @@ public class BankImpl extends UnicastRemoteObject implements Bank {
         }
         if (!exist) {
             Statement statement = connection.createStatement();
-            statement.executeUpdate("CREATE TABLE " + TABLE_NAME
-                    + " (name VARCHAR(32) PRIMARY KEY, balance FLOAT)");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME
+                    + " (name VARCHAR(32) PRIMARY KEY, balance FLOAT not null)");
         }
         return connection;
     }

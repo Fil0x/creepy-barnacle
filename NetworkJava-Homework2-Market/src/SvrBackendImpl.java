@@ -48,7 +48,7 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
 
             System.out.println("(ServerBackend) New item posted: " + item_name + ", " + price);
 
-            this.check_wishlist(new_item);
+            this.check_wishlist(name, new_item);
             return item_id;
         }
         else {
@@ -57,9 +57,10 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
         }
     }
 
-    private void check_wishlist(Item new_item) {
+    private void check_wishlist(String buyer, Item new_item) {
         for(String name: this.wishlist.keySet()){
             for(Wish w: this.wishlist.get(name)) {
+                if(buyer.equals(name)) continue;
                 if(w.isSatisfied(new_item.getItem_name(), new_item.getPrice())){
                     try {
                         clients.get(name).wish_item_appeared(new_item.getItemid(),

@@ -7,7 +7,6 @@ import java.util.HashMap;
 public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
 
     private HashMap<String, ClientCallback> clients;
-    private HashMap<String, Item> items;
     private HashMap<String, ArrayList<Wish>> wishlist;
     private Bank rmi_bank;
 
@@ -15,7 +14,6 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
     protected SvrBackendImpl() throws RemoteException {
         super();
         this.clients = new HashMap<>();
-        this.items = new HashMap<>();
         this.wishlist = new HashMap<>();
     }
 
@@ -45,11 +43,12 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
         if(clients.containsKey(name)){
             String item_id = Utilities.generateItemId();
             Item new_item = new Item(name, item_name, item_id, price);
-            items.put(item_id, new_item);
 
-            System.out.println("(ServerBackend) New item posted: " + item_name + ", " + price);
+            // Add it to the database
+            DBMediator dm = DBMediator.getInstance();
+            dm.sell(item_id, name, item_name, price);
 
-            this.check_wishlist(new_item);
+            this.check_wishlist(name, new_item);
             return item_id;
         }
         else {
@@ -58,9 +57,10 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
         }
     }
 
-    private void check_wishlist(Item new_item) {
+    private void check_wishlist(String buyer, Item new_item) {
         for(String name: this.wishlist.keySet()){
             for(Wish w: this.wishlist.get(name)) {
+                if(buyer.equals(name)) continue;
                 if(w.isSatisfied(new_item.getItem_name(), new_item.getPrice())){
                     try {
                         clients.get(name).wish_item_appeared(new_item.getItemid(),
@@ -84,7 +84,7 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
             return null;
         }
         // Check if he wants to buy his own item
-        Item item = this.items.get(itemID);
+        Item item = DBMediator.getInstance().getItem(itemID);
         if (item.getName().equals(name)) {
             return null;
         }
@@ -96,8 +96,10 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
             buyer_acc.withdraw(item.getPrice());
             seller_acc.deposit(item.getPrice());
             // Remove the item from the available stuff
-            System.out.println("(ServerBackend) Removing item: " + itemID);
-            this.items.remove(itemID);
+            DBMediator.getInstance().deleteItem(itemID);
+            // Increase the counters
+            DBMediator.getInstance().incrementPurchases(name);
+            DBMediator.getInstance().incrementSales(item.getName());
             // Notify the seller
             c.item_sold(item.getItem_name(), item.getPrice(), name);
 
@@ -110,7 +112,8 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
 
     @Override
     public HashMap<String, Item> all_items() throws RemoteException {
-        return this.items;
+        DBMediator dm = DBMediator.getInstance();
+        return dm.getAllItems();
     }
 
     @Override
@@ -131,7 +134,12 @@ public class SvrBackendImpl extends UnicastRemoteObject implements SvrBackend {
     }
 
     @Override
-    public void create_client(String username, String password) throws RemoteException {
-        DBMediator.getInstance().createClient(username, password);
+    public boolean create_client(String username, String password) throws RemoteException {
+        return DBMediator.getInstance().createClient(username, password);
+    }
+
+    @Override
+    public int[] getMetrics(String username) throws RemoteException {
+        return DBMediator.getInstance().getUserMetrics(username);
     }
 }
