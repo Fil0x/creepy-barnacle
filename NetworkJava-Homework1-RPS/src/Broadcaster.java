@@ -18,7 +18,6 @@ public class Broadcaster implements Runnable {
     @Override
     public void run() {
         try {
-            // TODO: If ip and port doesnt exist it still connects
             DatagramSocket socket = new DatagramSocket();
             for (String receiver : this.receivers) {
                 String[] split = receiver.split(" ");

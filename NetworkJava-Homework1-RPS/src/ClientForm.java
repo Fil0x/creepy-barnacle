@@ -8,7 +8,7 @@ import java.awt.event.ActionEvent;
 import java.util.Timer;
 
 public class ClientForm extends JFrame{
-    final int TIME_TO_WAIT = 30;
+    final int TIME_TO_WAIT = 15;
     private int name;
     private String ip_addr;
     private int port;
@@ -19,6 +19,7 @@ public class ClientForm extends JFrame{
     private JLabel status_label, player_label;
     private Timer timer;
     private int time;
+    private boolean isTimerRunning;
     private JTextArea connected;
     private JTextArea log;
     private JMenuItem connect, disconnect;
@@ -91,7 +92,6 @@ public class ClientForm extends JFrame{
                         + Integer.toString(time));
                 if(time <0) {
                     stop_timer();
-                    resetTimer();
                     if(!hasPlayed()){
                         BroadcasterMediator bm = new BroadcasterMediator(ClientForm.this, server);
                         bm.disconnect(getName());
@@ -99,10 +99,13 @@ public class ClientForm extends JFrame{
                 }
             }
         };
+        isTimerRunning = true;
         timer.schedule(timeRefreshTask, 0, 1000);
     }
 
     public void stop_timer(){
+        isTimerRunning = false;
+        resetTimer();
         timer.cancel();
     }
 
@@ -224,11 +227,13 @@ public class ClientForm extends JFrame{
         this.connect.setEnabled(true);
         this.disconnect.setEnabled(false);
         this.game_panel_active(false);
+        if(isTimerRunning) stop_timer();
     }
 
     private class ButtonClickListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             String choice = e.getActionCommand();
+            System.out.println(choice);
             BroadcasterMediator bm = new BroadcasterMediator(ClientForm.this, server);
 
             bm.send_move(ClientForm.this.getName(), choice);
@@ -250,9 +255,9 @@ public class ClientForm extends JFrame{
             panel.setLayout(new GridLayout(2, 2));
 
             JLabel ip_label = new JLabel("Enter IP:");
-            JTextField ip_input = new JTextField("127.0.0.1");
+            JTextField ip_input = new JTextField("130.229.129.212");
             JLabel port_label = new JLabel("Enter Port:");
-            JTextField port_input = new JTextField();
+            JTextField port_input = new JTextField("8000");
 
             panel.add(ip_label);
             panel.add(ip_input);
