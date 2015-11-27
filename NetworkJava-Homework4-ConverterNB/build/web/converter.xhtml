@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <h:head>
+         <title>MyConverter</title>
+      </h:head>
+      <h:body>
+         <h:form>
+            <h:outputLabel value="Welcome to MyConverter"/> <br/>
+            <h:outputLabel value="Enter value:"/>
+            <h:inputText id="value" required="true" requiredMessage="Please enter a value" validatorMessage="Numbers only"
+                         value="#{conversionManager.value}">
+               <f:validateRegex pattern="[0-9]*\.?[0-9]+"/>
+            </h:inputText>
+            <h:selectOneMenu id="from_curr" value="#{conversionManager.fromCurrency}">
+               <f:selectItem itemValue="eur" itemLabel="EUR" />
+               <f:selectItem itemValue="sek" itemLabel="SEK" />
+               <f:selectItem itemValue="chf" itemLabel="CHF" />
+               <f:selectItem itemValue="usd" itemLabel="USD" />
+            </h:selectOneMenu>
+            <h:selectOneMenu id="to_curr" value="#{conversionManager.toCurrency}">
+               <f:selectItem itemValue="eur" itemLabel="EUR" />
+               <f:selectItem itemValue="sek" itemLabel="SEK" />
+               <f:selectItem itemValue="chf" itemLabel="CHF" />
+               <f:selectItem itemValue="usd" itemLabel="USD" />
+            </h:selectOneMenu>
+            <br/>
+            <h:outputLabel for="result" rendered="#{conversionManager.result != null}"  value="Result : "/>
+            <h:outputText id="result" value="#{conversionManager.result}"/>
+            <br/>
+            <h:commandButton id="submit" value="Submit" action="#{conversionManager.convertCurrencies}"/>
+            <h:commandButton id="reset" value="Reset" action="#{conversionManager.reset}"/>
+         </h:form>
+      </h:body>
+</html>
+
